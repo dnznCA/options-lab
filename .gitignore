@@ -1,0 +1,19 @@
+# virtual environment
+venv/
+env/
+.venv/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# generated figures (regenerate with `python greeks_plots.py`; keep a few committed manually for the README)
+# comment the next line out if you'd rather commit all figures
+# fig*.png
