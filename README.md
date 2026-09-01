@@ -199,9 +199,56 @@ spread too wide to trust, or too little volume to mean anything.
 
 ## Project 5 — Delta-hedging P&L simulator
 
-The capstone. Combines Project 3's simulated paths with a discrete
-delta-hedging loop, tracks stock/cash/option positions over time, and
-attributes P&L to gamma and the realized-vs-implied volatility gap.
+The capstone. Sell an option, delta-hedge it with the underlying through
+expiry along a simulated path, and track cash/stock like an actual trading
+book. If hedging were continuous and the vol you hedged with matched what
+actually happened, the hedge would replicate the payoff exactly and P&L would
+be zero — that's the whole content of the Black-Scholes replication argument.
+This project makes the leak in that argument concrete.
+
+**Files:**
+- `delta_hedge.py` — `simulate_hedge()` sells one option at `sigma_hedge`,
+  then rebalances a stock position to match `delta()` at every step along a
+  path simulated at `sigma_realized` (which can differ), vectorized across
+  paths. `gamma_pnl_attribution()` is the theoretical side: a per-step
+  formula, derived from the Black-Scholes PDE, that predicts each step's
+  hedging P&L from gamma and the gap between `sigma_hedge` and the
+  realized move — see the file's docstring for the derivation. The
+  self-test checks that summing this formula over a path reproduces the
+  same P&L `simulate_hedge()` computes by direct bookkeeping.
+- `delta_hedge_plots.py` — writes `fig8_hedge_path.png` (spot, hedge ratio,
+  and cumulative P&L over one path), `fig9_hedge_pnl_dist.png` (P&L
+  distributions at three realized vols), and `fig10_rebalancing.png` (P&L
+  mean/std vs. rebalancing frequency).
+
+**Run it:**
+```bash
+python delta_hedge.py          # self-test: attribution check, vol-gap study, rebalancing-frequency study
+python delta_hedge_plots.py    # writes fig8/fig9/fig10 PNGs
+```
+
+At the base case (hedged at σ=20%, daily rebalancing), realized vol below
+20% nets the seller a profit, above 20% a loss, and right at 20% the mean
+P&L across 4,000 simulated paths is **-0.0007** — indistinguishable from
+zero. Rebalancing more often shrinks the spread of outcomes without moving
+that mean at all.
+
+### Design decisions
+
+- **Two independent ways to compute the same P&L, checked against each
+  other.** `simulate_hedge()` gets its answer from cash/stock bookkeeping —
+  the same way a real trading book would. `gamma_pnl_attribution()` gets
+  its answer from a closed-form formula. They agree to within discretization
+  error on every path tested, which is what actually justifies the "P&L
+  comes from gamma and the vol gap" claim, instead of just asserting it.
+- **The realized path and the hedging vol are separate parameters on
+  purpose.** Every other project in this repo has one `sigma`; this one
+  has two (`sigma_hedge`, `sigma_realized`) because the entire lesson is
+  in the gap between them. Setting them equal recovers "textbook" hedging.
+- **Vectorized across paths, not just steps.** `simulate_hedge()` loops
+  over time steps in Python but vectorizes every step across `n_paths` with
+  numpy, so running the 4,000-path studies in the self-test takes a fraction
+  of a second instead of looping in pure Python per path.
 
 ---
 

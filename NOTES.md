@@ -231,26 +231,98 @@ actually tracks the theoretical `1/√N` rate.
 
 ---
 
-## 6. Where this is headed (Projects 4 & 5)
+## 6. A real vol smile/surface — [vol_surface.py](vol_surface.py)
 
-- **Project 4 (vol smile/surface):** run `implied_vol.py`'s solver across a
-  real option chain — many strikes and maturities at once. The math is
-  already built; the new difficulty is *data*: real quotes have bid/ask
-  spreads, illiquid strikes with unreliable prices, and dividends that need
-  handling correctly (this is why `q` is threaded through every function
-  in `black_scholes.py` even though it's always been zero so far).
-- **Project 5 (delta-hedging P&L simulator):** this is where "replication"
-  from §2 stops being a theoretical argument and becomes actual simulated
-  P&L. Take a simulated path from `simulate_gbm_paths()`, and at each step,
-  hold `delta()` shares of stock against a short option position,
-  rebalancing as delta changes. In a perfect continuous-time world with the
-  realized vol exactly matching the vol you hedged with, this replication
-  is exact and the hedged P&L is zero — that's the whole content of the
-  Black-Scholes argument. The simulator makes it concrete: discrete
-  rebalancing (not continuous) and realized vol ≠ implied vol both leak
-  P&L, and that leak decomposes cleanly into gamma P&L and a vega/vol-gap
-  term. This is the project that turns "delta is the hedge ratio" from a
-  definition into something you've watched happen.
+Everything so far ran on hand-picked numbers (S=100, K=100, σ=20%). This
+project runs `implied_vol.py`'s solver across a real option chain, pulled
+live from Yahoo Finance — many strikes and maturities at once. The math was
+already built in Project 2; the new difficulty is *data*.
+
+**Why a raw option chain can't just be fed to the solver as-is:** a real
+chain has quotes with no bid, no ask, spreads too wide to trust, strikes so
+far from the money nobody's traded them today, and — for the same strike —
+a call and a put whose implied vols don't quite agree (American exercise,
+dividends, and thin liquidity all nudge them apart in practice, unlike the
+idealized quotes used everywhere else in this repo). `clean_quotes()`
+handles this with a documented filter — real bid/ask required, a cap on
+relative spread, a moneyness band, a minimum volume — and prints what it
+dropped and why, rather than silently discarding data.
+
+**Why only the OTM side of each strike is kept:** out-of-the-money options
+are the actively-traded side of a real chain (calls above spot, puts below).
+Keeping only that side is a free liquidity win *before* any bid/ask
+filtering even runs, and sidesteps the call/put IV disagreement above
+entirely instead of averaging over it.
+
+**What the result looks like:** a real smile isn't flat — implied vol
+typically rises for strikes far from the money, and for equities it's
+usually asymmetric (steeper on the downside, since demand for crash
+protection bids up OTM put prices more than OTM call prices). That shape is
+direct empirical evidence that Black-Scholes's constant-σ assumption is an
+approximation, not reality — the model is still useful, but the market
+prices as if volatility itself has a shape.
+
+**Visualized in:** `vol_surface_plots.py` — `fig6` shows implied vol vs.
+moneyness as one line per expiry (the smile itself); `fig7` shows the same
+data as a 3D surface across moneyness and time, built with
+`plot_trisurf` since real strikes don't line up into a neat grid across
+expiries.
+
+---
+
+## 7. Delta-hedging P&L — [delta_hedge.py](delta_hedge.py)
+
+This is where replication (§2) stops being a theoretical argument and
+becomes simulated P&L you can watch happen.
+
+**The setup:** sell one option at t=0, priced at some volatility you believe
+in (`sigma_hedge`). Hedge it by holding `delta()` shares of stock, using
+that same `sigma_hedge` for every delta calculation. Walk forward along a
+simulated path — but simulate that path using a possibly *different*
+volatility, `sigma_realized`, representing what the stock actually does.
+Rebalance the hedge at every step. At expiry, compare what's left in
+cash-plus-stock against what's owed on the option payoff. That difference is
+the hedging P&L.
+
+**Why two separate volatilities matter:** every other project in this repo
+has one `sigma`. This one has two on purpose, because the entire lesson
+lives in the gap between them. Set `sigma_hedge = sigma_realized` and
+rebalance continuously, and the replication argument from §2 says this P&L
+should be exactly zero — the hedge perfectly recreates the option. Make
+either one false — hedge discretely instead of continuously, or let the
+realized path be wilder or calmer than what you hedged for — and P&L leaks
+out. Concretely: hedge at 20% and let the stock realize 20%, and the mean
+P&L across thousands of simulated paths lands at essentially zero. Let the
+stock realize 30% instead (you sold "cheap" insurance against moves that
+turned out bigger than priced), and the seller loses money on average. Let
+it realize 10% (you were paid for turbulence that didn't show up), and the
+seller profits on average — the classic "sold vol, it came in calm"
+result.
+
+**Where that leaked P&L actually comes from, precisely:** this isn't just
+asserted — `gamma_pnl_attribution()` derives it. Starting from the
+Black-Scholes PDE and Itô's lemma, the hedge error over one small step
+works out to `0.5 · gamma · S² · (sigma_hedge² · dt − realized_return²)`.
+Read that as: gamma-weighted exposure, times the gap between the variance
+you hedged for over that instant and the variance that actually showed up.
+Summing this formula over an entire path reproduces — up to a small
+discretization error — the exact same P&L `simulate_hedge()` computes by
+literal cash-and-stock bookkeeping. Two independent calculations agreeing
+is what makes "P&L comes from gamma and the vol gap" a demonstrated result
+rather than a claim.
+
+**Why rebalancing frequency matters, and what it doesn't fix:** hedging
+more often (daily instead of monthly, say) shrinks the *spread* of possible
+outcomes — the discrete-hedging noise from only being able to adjust the
+hedge at finite intervals. It does **not** move the *mean* outcome, which is
+set entirely by the vol gap. More frequent rebalancing makes a mismatched
+hedge more consistently wrong, not less wrong on average.
+
+**Visualized in:** `delta_hedge_plots.py` — `fig8` follows one path's spot,
+hedge ratio, and cumulative P&L over time; `fig9` overlays P&L distributions
+at three realized vols against one hedging vol, showing the profit/loss
+split directly; `fig10` plots P&L mean and spread against rebalancing
+frequency, showing the spread narrow while the mean stays flat.
 
 ---
 
@@ -345,6 +417,33 @@ formula.
 | `ci_low`, `ci_high` | 95% confidence interval, `price ± 1.96 · std_error` |
 | `t_grid` | The array of time points `[0, dt, 2dt, ..., T]` a simulated path is plotted against |
 | `paths` | Full simulated path array from `simulate_gbm_paths()`, shape `(n_paths, n_steps+1)` — used only for visualization |
+
+### Vol surface — [vol_surface.py](vol_surface.py)
+
+| Name | Meaning |
+|---|---|
+| `raw` | Every OTM quote pulled from `yfinance`, before any data-hygiene filtering |
+| `cleaned` | `raw` after `clean_quotes()` — real bid/ask, spread and moneyness within bounds, minimum volume |
+| `mid` | `(bid + ask) / 2`, used as "the" market price instead of last trade (which can be stale) |
+| `rel_spread` | `(ask - bid) / mid` — how wide the market is, relative to its own price; the filter's spread cutoff acts on this |
+| `moneyness` | `strike / spot` (`K/S`) — 1.0 is exactly at-the-money; used as the x-axis for the smile instead of raw strike, so different stocks/prices are comparable |
+| `max_rel_spread`, `moneyness_range`, `min_volume` | The three filter thresholds in `clean_quotes()` — how wide a spread, how far from the money, and how little volume is still considered trustworthy |
+| `surface` | The final DataFrame of solved implied vols — one row per (strike, expiry) that survived cleaning and converged |
+
+### Delta-hedging — [delta_hedge.py](delta_hedge.py)
+
+| Name | Meaning |
+|---|---|
+| `sigma_hedge` | The volatility you believe in — prices the option at t=0 and drives every `delta()` calculation used to rebalance the hedge |
+| `sigma_realized` | The volatility the simulated path actually has — separate from `sigma_hedge` on purpose, since the entire lesson lives in the gap between them |
+| `n_paths` | Number of independent hedging simulations run at once, vectorized with numpy across the time-step loop |
+| `track_history` | If `True`, returns the full time series (spot, delta, portfolio value) for plotting one path, instead of just each path's final P&L |
+| `premium` | The option price at t=0, computed with `sigma_hedge` — what the seller collects upfront |
+| `shares` | The current hedge ratio (= `delta()`), i.e. how many shares are held against the short option at this instant |
+| `cash` | The hedge's cash account — grows at `r` each step, adjusted whenever shares are bought/sold to rebalance, and (if `q>0`) collects dividends on shares currently held |
+| `payoff` | What's owed on the option at expiry: `max(S_T-K, 0)` for a call, `max(K-S_T, 0)` for a put |
+| `hedge_pnl` | Final `(cash + shares·S_T) - payoff` — zero under perfect (continuous, correctly-vol'd) hedging; the whole point of this project is what makes it nonzero in practice |
+| `gamma_pnl_attribution()` | The theoretical, per-step version of the same P&L: `0.5·gamma·S²·(sigma_hedge²·dt - realized_return²)`, derived from the Black-Scholes PDE — see §7 |
 
 ### Conceptual terms
 
