@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Options Textbook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --panel-bg: #ffffff;
+    --text: #1a1a1e;
+    --text-muted: #6b6b76;
+    --border: #e2e2e8;
+    --grid: #ececf1;
+    --accent: #3b6fe0;
+    --accent-bg: #eaf0fd;
+    --c0: #3b6fe0;
+    --c1: #e0553b;
+    --c2: #1f9d76;
+    --c3: #e0a13b;
+    --c4: #8b5ce0;
+    --c5: #2aa8c9;
+    --danger: #d13b3b;
+    --warn-bg: #fdf3e6;
+    --warn-text: #8a5a12;
+    --err-bg: #fdeaea;
+    --err-text: #a12a2a;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161a;
+      --panel-bg: #1f1f24;
+      --text: #eceef2;
+      --text-muted: #9a9aa5;
+      --border: #313138;
+      --grid: #2a2a31;
+      --accent: #6f97ee;
+      --accent-bg: #22304f;
+      --c0: #6f97ee;
+      --c1: #e87b64;
+      --c2: #4dc298;
+      --c3: #e8bd63;
+      --c4: #ab8bf0;
+      --c5: #5cc4e0;
+      --danger: #e87b7b;
+      --warn-bg: #3a3018;
+      --warn-text: #e8c37a;
+      --err-bg: #3a1e1e;
+      --err-text: #e88a8a;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    padding: 20px 24px 8px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  header h1 { margin: 0 0 4px; font-size: 20px; }
+  header p { margin: 0; color: var(--text-muted); font-size: 13px; }
+  nav.tabs {
+    max-width: 1180px;
+    margin: 16px auto 0;
+    padding: 0 24px;
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  nav.tabs button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 10px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  nav.tabs button:hover { color: var(--text); }
+  nav.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  main.container { max-width: 1180px; margin: 0 auto; padding: 20px 24px 60px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .topic-intro {
+    background: var(--panel-bg); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    border-radius: 4px 10px 10px 4px; padding: 18px 22px; margin-bottom: 22px;
+  }
+  .topic-intro h2 { margin: 0; font-size: 18px; }
+  .topic-intro p { margin: 10px 0 0; color: var(--text-muted); line-height: 1.65; font-size: 14px; }
+  .topic-intro p:first-of-type { margin-top: 10px; }
+  .topic-intro strong { color: var(--text); font-weight: 600; }
+  .topic-intro .topic-formula { margin-top: 14px; }
+  .topic-intro .topic-formula .glossary-formula { margin-top: 0; }
+
+  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .panel + .panel { margin-top: 16px; }
+  .panel h3 { margin: 0 0 12px; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 4px; }
+  .field-row { display: flex; align-items: center; gap: 8px; }
+  .field-row input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .field-row input[type=number] {
+    flex: 0 0 68px; width: 68px; padding: 5px 6px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg); color: var(--text); font: inherit; font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .field > input[type=number] {
+    width: 100%; margin-top: 4px; padding: 5px 7px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg); color: var(--text); font: inherit;
+  }
+
+  .toggle-row { display: flex; gap: 6px; }
+  .toggle-row button {
+    flex: 1; padding: 7px 0; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text-muted); font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .toggle-row button.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  button.action {
+    width: 100%; padding: 9px 0; margin-top: 4px;
+    border: none; border-radius: 7px; background: var(--accent); color: #fff;
+    font: inherit; font-weight: 700; cursor: pointer; font-size: 13.5px;
+  }
+  button.action:hover { filter: brightness(1.08); }
+  button.secondary {
+    width: 100%; padding: 7px 0; border-radius: 7px; border: 1px solid var(--border);
+    background: transparent; color: var(--text); font: inherit; font-weight: 600; cursor: pointer; font-size: 12.5px;
+  }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat-card {
+    background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; position: relative;
+  }
+  .stat-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; }
+  .stat-card .label .sym { text-transform: none; }
+  .stat-card .value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .stat-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+  .stat-card[data-tip] { cursor: help; }
+  .stat-card[data-tip] .label { text-decoration: underline dotted; text-underline-offset: 3px; }
+  .stat-card[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute; left: 50%; top: 100%; margin-top: 8px;
+    transform: translateX(-50%) translateY(-4px);
+    width: max-content; max-width: 230px;
+    background: var(--text); color: var(--bg);
+    font-size: 11.5px; font-weight: 400; line-height: 1.45; text-transform: none;
+    padding: 8px 10px; border-radius: 7px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.28);
+    opacity: 0; pointer-events: none; z-index: 30;
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  .stat-card[data-tip]:hover::after,
+  .stat-card[data-tip]:focus-within::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .stat-card[data-tip]:nth-last-child(-n+2)::after,
+  .stat-card[data-tip]:last-child::after { left: auto; right: 0; transform: translateY(-4px); }
+  .stat-card[data-tip]:nth-last-child(-n+2):hover::after,
+  .stat-card[data-tip]:last-child:hover::after { transform: translateY(0); }
+
+  .chart-card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+  .chart-card h4 { margin: 0 0 8px; font-size: 13px; }
+  .chart-card canvas { width: 100%; height: 260px; display: block; }
+  .chart-card canvas.small { height: 150px; }
+
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .chart-row { grid-template-columns: 1fr; } }
+
+  .greek-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .greek-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .greek-grid { grid-template-columns: 1fr; } }
+  .greek-grid .chart-card { margin-bottom: 0; padding: 10px 12px; }
+  .greek-grid canvas { height: 140px; }
+
+  .msg { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
+  .msg.err { background: var(--err-bg); color: var(--err-text); }
+  .msg.warn { background: var(--warn-bg); color: var(--warn-text); }
+  .msg.ok { background: var(--accent-bg); color: var(--accent); }
+
+  .hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+  table.trace { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.trace th, table.trace td { text-align: right; padding: 4px 6px; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  table.trace th:first-child, table.trace td:first-child { text-align: left; }
+  table.trace tbody { display: block; max-height: 180px; overflow-y: auto; }
+  table.trace thead, table.trace tbody tr { display: table; width: 100%; table-layout: fixed; }
+
+  footer { max-width: 1180px; margin: 0 auto; padding: 0 24px 40px; color: var(--text-muted); font-size: 12px; }
+  footer a { color: var(--accent); }
+  code { background: var(--grid); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+  .glossary-search {
+    width: 100%; padding: 10px 14px; margin-bottom: 18px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel-bg); color: var(--text); font: inherit; font-size: 14px;
+  }
+  .glossary-count { font-size: 12px; color: var(--text-muted); margin: -12px 0 14px; }
+  /* grid, not multi-column: multicol rebalances height across the whole list on
+     any content change, so an expanding card makes unrelated cards jump between
+     columns. grid rows size independently — a taller row only pushes rows below it. */
+  .glossary-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; align-items: start; }
+  @media (max-width: 800px) { .glossary-grid { grid-template-columns: 1fr; } }
+  .glossary-entry {
+    background: var(--panel-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+    cursor: pointer; transition: border-color .12s ease;
+  }
+  .glossary-entry:hover { border-color: var(--accent); }
+  .glossary-entry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .glossary-entry dt { font-weight: 700; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .glossary-entry dt .sym { color: var(--accent); font-weight: 400; }
+  .glossary-entry dt .chevron {
+    margin-left: auto; color: var(--text-muted); font-size: 11px;
+    transition: transform .15s ease; flex-shrink: 0;
+  }
+  .glossary-entry.expanded dt .chevron { transform: rotate(90deg); }
+  .glossary-entry dd { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .glossary-entry dd code { font-size: 12px; }
+  .glossary-note {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .22s ease, opacity .18s ease, margin-top .22s ease;
+    font-size: 12.5px; color: var(--text); line-height: 1.55;
+    border-top: 1px dashed var(--border);
+  }
+  .glossary-entry.expanded .glossary-note { opacity: 1; margin-top: 10px; padding-top: 9px; }
+  .glossary-note::before {
+    content: "In plain English:"; display: block; font-weight: 700; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .03em; color: var(--accent); margin-bottom: 4px;
+  }
+  .glossary-empty { color: var(--text-muted); font-size: 13px; padding: 20px 0; text-align: center; }
+
+  .glossary-formula {
+    margin-top: 10px; padding: 10px 6px 4px; border-radius: 8px;
+    background: var(--bg); border: 1px solid var(--border); overflow-x: auto; color: var(--text);
+  }
+  .glossary-formula .katex-display { margin: 6px 0; }
+  .glossary-formula .formula-where {
+    font-size: 11px; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: .03em; margin: 6px 0 -2px 4px;
+  }
+  .formula-legend {
+    display: flex; flex-wrap: wrap; gap: 5px 16px; margin: 10px 4px 4px;
+    padding-top: 9px; border-top: 1px dashed var(--border);
+    font-size: 12px; color: var(--text-muted);
+  }
+  .formula-legend .k { color: var(--accent); font-weight: 700; font-style: italic; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Interactive Options Textbook</h1>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="bs">Black-Scholes &amp; Greeks</button>
+  <button class="tab-btn" data-tab="iv">Implied Volatility</button>
+  <button class="tab-btn" data-tab="mc">Monte Carlo</button>
+  <button class="tab-btn" data-tab="glossary">Glossary</button>
+</nav>
+
+<main class="container">
+
+  <!-- ======================= TAB 1: BLACK-SCHOLES ======================= -->
+  <section id="tab-bs" class="tab-panel active">
+    <div class="topic-intro">
+      <h2>Black-Scholes: price and the Greeks</h2>
+      <p>Black-Scholes computes a European option's price from five inputs: spot, strike, time to expiry,
+        interest rate, and volatility. One equation, no simulation. The Greeks are the partial derivatives
+        of that price — <strong>delta</strong> per $1 of spot, <strong>vega</strong> per point of volatility,
+        <strong>theta</strong> per day of time passing.</p>
+      <p>Traders watch the Greeks more than the price itself, because Greeks describe risk directly: delta is
+        the hedge ratio, gamma is how fast that hedge goes stale, vega is exposure to a shift in volatility
+        with no stock movement at all. Implied vol (next tab) inverts this formula; Monte Carlo (after that)
+        prices the same thing by simulation.</p>
+      <div class="topic-formula" id="bs_topic_formula"></div>
+    </div>
+    <div class="layout">
+      <aside class="panel">
+        <h3>Inputs</h3>
+        <div class="field">
+          <label>Spot S</label>
+          <div class="field-row">
+            <input type="range" id="bs_S" min="1" max="300" step="0.5" value="100">
+            <input type="number" id="bs_S_num" min="1" max="300" step="0.5" value="100">
+          </div>
+        </div>
+        <div class="field">
+          <label>Strike K</label>
+          <div class="field-row">
+            <input type="range" id="bs_K" min="1" max="300" step="0.5" value="100">
+            <input type="number" id="bs_K_num" min="1" max="300" step="0.5" value="100">
+          </div>
+        </div>
+        <div class="field">
+          <label>Time to expiry T (years)</label>
+          <div class="field-row">
+            <input type="range" id="bs_T" min="0.02" max="3" step="0.01" value="1">
+            <input type="number" id="bs_T_num" min="0.02" max="3" step="0.01" value="1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Volatility σ (%)</label>
+          <div class="field-row">
+            <input type="range" id="bs_sigma" min="0.01" max="1.5" step="0.01" value="0.20">
+            <input type="number" id="bs_sigma_num" min="1" max="150" step="0.1" value="20.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Risk-free rate r (%)</label>
+          <div class="field-row">
+            <input type="range" id="bs_r" min="-0.02" max="0.15" step="0.001" value="0.05">
+            <input type="number" id="bs_r_num" min="-2" max="15" step="0.1" value="5.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Dividend yield q (%)</label>
+          <div class="field-row">
+            <input type="range" id="bs_q" min="0" max="0.10" step="0.001" value="0">
+            <input type="number" id="bs_q_num" min="0" max="10" step="0.1" value="0.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Option type</label>
+          <div class="toggle-row">
+            <button id="bs_call_btn" class="active">Call</button>
+            <button id="bs_put_btn">Put</button>
+          </div>
+        </div>
+      </aside>
+
+      <div>
+        <div class="stat-grid" id="bs_stats"></div>
+
+        <div class="chart-card">
+          <h4>Price vs spot — dashed tangent line = delta at current S</h4>
+          <canvas id="bs_priceChart"></canvas>
+        </div>
+
+        <div class="chart-card" style="margin-bottom:0;">
+          <h4>The six Greeks vs spot (vertical line = current S)</h4>
+          <div class="greek-grid">
+            <div class="chart-card"><h4>Delta (Δ)</h4><canvas id="g_delta"></canvas></div>
+            <div class="chart-card"><h4>Gamma (Γ)</h4><canvas id="g_gamma"></canvas></div>
+            <div class="chart-card"><h4>Vega (V) — per vol-pt</h4><canvas id="g_vega"></canvas></div>
+            <div class="chart-card"><h4>Theta (Θ) — per day</h4><canvas id="g_theta"></canvas></div>
+            <div class="chart-card"><h4>Rho (ρ) — per 1%</h4><canvas id="g_rho"></canvas></div>
+            <div class="chart-card"><h4>Vanna</h4><canvas id="g_vanna"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= TAB 2: IMPLIED VOL ======================= -->
+  <section id="tab-iv" class="tab-panel">
+    <div class="topic-intro">
+      <h2>Implied volatility</h2>
+      <p>Every Black-Scholes input except volatility is directly observable. Implied volatility solves the
+        formula backwards: given a market price, find the σ that produces it.</p>
+      <p>This is what options actually trade on — not price, but the market's own volatility forecast. The
+        solver uses <strong>Newton-Raphson</strong>, with vega (from the previous tab) as its slope, and falls
+        back to <strong>bisection</strong> when vega is too flat to trust: deep ITM/OTM, very short-dated.</p>
+      <div class="topic-formula" id="iv_topic_formula"></div>
+    </div>
+    <div class="layout">
+      <aside class="panel">
+        <h3>Inputs</h3>
+        <div class="field">
+          <label>Spot S</label>
+          <div class="field-row">
+            <input type="range" id="iv_S" min="1" max="300" step="0.5" value="100">
+            <input type="number" id="iv_S_num" min="1" max="300" step="0.5" value="100">
+          </div>
+        </div>
+        <div class="field">
+          <label>Strike K</label>
+          <div class="field-row">
+            <input type="range" id="iv_K" min="1" max="300" step="0.5" value="100">
+            <input type="number" id="iv_K_num" min="1" max="300" step="0.5" value="100">
+          </div>
+        </div>
+        <div class="field">
+          <label>Time to expiry T (years)</label>
+          <div class="field-row">
+            <input type="range" id="iv_T" min="0.02" max="3" step="0.01" value="1">
+            <input type="number" id="iv_T_num" min="0.02" max="3" step="0.01" value="1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Risk-free rate r (%)</label>
+          <div class="field-row">
+            <input type="range" id="iv_r" min="-0.02" max="0.15" step="0.001" value="0.05">
+            <input type="number" id="iv_r_num" min="-2" max="15" step="0.1" value="5.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Dividend yield q (%)</label>
+          <div class="field-row">
+            <input type="range" id="iv_q" min="0" max="0.10" step="0.001" value="0">
+            <input type="number" id="iv_q_num" min="0" max="10" step="0.1" value="0.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Option type</label>
+          <div class="toggle-row">
+            <button id="iv_call_btn" class="active">Call</button>
+            <button id="iv_put_btn">Put</button>
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Market price</label>
+          <input type="number" id="iv_marketPrice" step="0.0001" value="10.4506">
+        </div>
+        <button class="action" id="iv_solve_btn">Solve for implied vol</button>
+        <hr class="divider">
+        <h3>Or generate a price</h3>
+        <div class="field">
+          <label>True σ to price at (%)</label>
+          <div class="field-row">
+            <input type="range" id="iv_trueSigma" min="0.01" max="1.5" step="0.01" value="0.20">
+            <input type="number" id="iv_trueSigma_num" min="1" max="150" step="0.1" value="20.0">
+          </div>
+        </div>
+        <button class="secondary" id="iv_generate_btn">Fill market price from this σ</button>
+        <p class="hint">Prices the option with the true σ above via <code>bs_price</code>, then drops that
+          number into the market price field — a way to check the solver against a known answer, same idea
+          as <code>implied_vol.py</code>'s self-test.</p>
+      </aside>
+
+      <div>
+        <div class="stat-grid" id="iv_stats"></div>
+        <div id="iv_message"></div>
+
+        <div class="chart-card">
+          <h4>Solver trace — σ guess per iteration (dashed = true σ, if generated above)</h4>
+          <canvas id="iv_traceChart"></canvas>
+        </div>
+
+        <div class="chart-card" style="margin-bottom:0;">
+          <h4>Iteration detail</h4>
+          <table class="trace" id="iv_traceTable">
+            <thead><tr><th>#</th><th>method</th><th>σ</th><th>price</th><th>error</th><th>vega</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= TAB 3: MONTE CARLO ======================= -->
+  <section id="tab-mc" class="tab-panel">
+    <div class="topic-intro">
+      <h2>Monte Carlo pricing</h2>
+      <p>Black-Scholes has a closed-form solution because its payoff — max(S<sub>T</sub> − K, 0) — is simple
+        enough to integrate directly. Most payoffs aren't. Monte Carlo prices anything: simulate the random
+        process thousands of times and average the result.</p>
+      <p>Two uses here. It's a check — this price should converge to the same number Black-Scholes computes,
+        with a shrinking confidence interval to prove it. And it's the technique Project 5's delta-hedging
+        simulation depends on, since there's no formula to fall back on there.</p>
+      <div class="topic-formula" id="mc_topic_formula"></div>
+    </div>
+    <div class="layout">
+      <aside class="panel">
+        <h3>Inputs</h3>
+        <div class="field">
+          <label>Spot S</label>
+          <div class="field-row">
+            <input type="range" id="mc_S" min="1" max="300" step="0.5" value="100">
+            <input type="number" id="mc_S_num" min="1" max="300" step="0.5" value="100">
+          </div>
+        </div>
+        <div class="field">
+          <label>Strike K</label>
+          <div class="field-row">
+            <input type="range" id="mc_K" min="1" max="300" step="0.5" value="100">
+            <input type="number" id="mc_K_num" min="1" max="300" step="0.5" value="100">
+          </div>
+        </div>
+        <div class="field">
+          <label>Time to expiry T (years)</label>
+          <div class="field-row">
+            <input type="range" id="mc_T" min="0.02" max="3" step="0.01" value="1">
+            <input type="number" id="mc_T_num" min="0.02" max="3" step="0.01" value="1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Volatility σ (%)</label>
+          <div class="field-row">
+            <input type="range" id="mc_sigma" min="0.01" max="1.5" step="0.01" value="0.20">
+            <input type="number" id="mc_sigma_num" min="1" max="150" step="0.1" value="20.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Risk-free rate r (%)</label>
+          <div class="field-row">
+            <input type="range" id="mc_r" min="-0.02" max="0.15" step="0.001" value="0.05">
+            <input type="number" id="mc_r_num" min="-2" max="15" step="0.1" value="5.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Dividend yield q (%)</label>
+          <div class="field-row">
+            <input type="range" id="mc_q" min="0" max="0.10" step="0.001" value="0">
+            <input type="number" id="mc_q_num" min="0" max="10" step="0.1" value="0.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Option type</label>
+          <div class="toggle-row">
+            <button id="mc_call_btn" class="active">Call</button>
+            <button id="mc_put_btn">Put</button>
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Paths</label>
+          <div class="field-row">
+            <input type="range" id="mc_nPathsSlider" min="0" max="100" step="1" value="60">
+            <input type="number" id="mc_nPaths_num" min="1000" max="200000" step="1000" value="50000">
+          </div>
+          <p class="hint">Capped at 200,000 for browser responsiveness — <code>monte_carlo.py</code> runs
+             into the millions.</p>
+        </div>
+        <div class="field">
+          <label>Seed</label>
+          <input type="number" id="mc_seed" step="1" value="42">
+        </div>
+        <div class="field" style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="mc_antithetic" checked style="width:auto;">
+          <label style="margin:0;" for="mc_antithetic">Antithetic variates</label>
+        </div>
+        <button class="action" id="mc_simulate_btn">Simulate</button>
+      </aside>
+
+      <div>
+        <div class="stat-grid" id="mc_stats"></div>
+
+        <div class="chart-row">
+          <div class="chart-card">
+            <h4>Sample simulated paths</h4>
+            <canvas id="mc_pathsChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4>Terminal spot distribution</h4>
+            <canvas id="mc_histChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card" style="margin-bottom:0;">
+          <h4>Convergence to closed-form price (log path-count axis)</h4>
+          <canvas id="mc_convChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= TAB 4: GLOSSARY ======================= -->
+  <section id="tab-glossary" class="tab-panel">
+    <div class="topic-intro">
+      <h2>Glossary</h2>
+      <p>Every term and formula used on the other tabs, with a plain-English explanation and the closed-form
+        equation where one exists.</p>
+      <p>Click a card to expand it. Use search to jump to a term.</p>
+    </div>
+    <input type="text" id="glossary_search" class="glossary-search" placeholder="Search terms or definitions…" autocomplete="off">
+    <div class="glossary-count" id="glossary_count"></div>
+    <dl class="glossary-grid" id="glossary_list"></dl>
+    <div class="glossary-empty" id="glossary_empty" hidden>No matching terms.</div>
+  </section>
+
+</main>
+
+<footer>
+  Base case everywhere defaults to S=100, K=100, T=1y, r=5%, σ=20%, q=0 — same scenario used throughout
+  the repo's README and self-tests. Closed-form call price at that case is <strong>10.4506</strong>.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<script>
+"use strict";
+
+/* ============================================================
+   MATH — ports of black_scholes.py / implied_vol.py / monte_carlo.py
+   ============================================================ */
+
+function erf(x) {
+  // Abramowitz & Stegun 7.1.26, max error ~1.5e-7 — plenty for a UI
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429, p=0.3275911;
+  const t = 1 / (1 + p * x);
+  const y = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1) * t * Math.exp(-x*x);
+  return sign * y;
+}
+function normCdf(x) { return 0.5 * (1 + erf(x / Math.SQRT2)); }
+function normPdf(x) { return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI); }
+
+function d1d2(S, K, T, r, sigma, q) {
+  const volSqrtT = sigma * Math.sqrt(T);
+  const d1 = (Math.log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / volSqrtT;
+  return [d1, d1 - volSqrtT];
+}
+
+function bsPrice(S, K, T, r, sigma, optionType, q) {
+  q = q || 0;
+  const isCall = optionType === "call";
+  if (T <= 0 || sigma <= 0) {
+    const fwd = S * Math.exp(-q * T) - K * Math.exp(-r * T);
+    return isCall ? Math.max(fwd, 0) : Math.max(-fwd, 0);
+  }
+  const [d1, d2] = d1d2(S, K, T, r, sigma, q);
+  const discS = S * Math.exp(-q * T);
+  const discK = K * Math.exp(-r * T);
+  return isCall ? discS * normCdf(d1) - discK * normCdf(d2)
+                : discK * normCdf(-d2) - discS * normCdf(-d1);
+}
+function bsDelta(S, K, T, r, sigma, optionType, q) {
+  q = q || 0;
+  const [d1] = d1d2(S, K, T, r, sigma, q);
+  const disc = Math.exp(-q * T);
+  return optionType === "call" ? disc * normCdf(d1) : disc * (normCdf(d1) - 1);
+}
+function bsGamma(S, K, T, r, sigma, q) {
+  q = q || 0;
+  const [d1] = d1d2(S, K, T, r, sigma, q);
+  return Math.exp(-q * T) * normPdf(d1) / (S * sigma * Math.sqrt(T));
+}
+function bsVega(S, K, T, r, sigma, q) {
+  q = q || 0;
+  const [d1] = d1d2(S, K, T, r, sigma, q);
+  return S * Math.exp(-q * T) * normPdf(d1) * Math.sqrt(T);
+}
+function bsTheta(S, K, T, r, sigma, optionType, q) {
+  q = q || 0;
+  const [d1, d2] = d1d2(S, K, T, r, sigma, q);
+  const discS = S * Math.exp(-q * T), discK = K * Math.exp(-r * T);
+  const termDecay = -discS * normPdf(d1) * sigma / (2 * Math.sqrt(T));
+  return optionType === "call"
+    ? termDecay - r * discK * normCdf(d2) + q * discS * normCdf(d1)
+    : termDecay + r * discK * normCdf(-d2) - q * discS * normCdf(-d1);
+}
+function bsRho(S, K, T, r, sigma, optionType, q) {
+  q = q || 0;
+  const [, d2] = d1d2(S, K, T, r, sigma, q);
+  const discK = K * T * Math.exp(-r * T);
+  return optionType === "call" ? discK * normCdf(d2) : -discK * normCdf(-d2);
+}
+function bsVanna(S, K, T, r, sigma, q) {
+  q = q || 0;
+  const [d1, d2] = d1d2(S, K, T, r, sigma, q);
+  return -Math.exp(-q * T) * normPdf(d1) * d2 / sigma;
+}
+function bsVomma(S, K, T, r, sigma, q) {
+  q = q || 0;
+  const [d1, d2] = d1d2(S, K, T, r, sigma, q);
+  return bsVega(S, K, T, r, sigma, q) * d1 * d2 / sigma;
+}
+
+// --- implied vol solver: Newton-Raphson with bisection fallback ---
+function impliedVol(marketPrice, S, K, T, r, q, optionType, opts) {
+  opts = opts || {};
+  const tol = opts.tol ?? 1e-8, maxIter = opts.maxIter ?? 100;
+  const vegaFloor = opts.vegaFloor ?? 1e-8;
+  const bisectLo = opts.bisectLo ?? 1e-6, bisectHi = opts.bisectHi ?? 5.0;
+  const trace = [];
+
+  const discR = Math.exp(-r * T), discQ = Math.exp(-q * T);
+  let lower, upper;
+  if (optionType === "call") { lower = Math.max(0, S*discQ - K*discR); upper = S*discQ; }
+  else { lower = Math.max(0, K*discR - S*discQ); upper = K*discR; }
+  if (marketPrice < lower - 1e-10 || marketPrice > upper + 1e-10) {
+    return { iv:null, iterations:0, method:null, converged:false, trace,
+      error:`Price ${marketPrice.toFixed(6)} outside no-arbitrage bounds [${lower.toFixed(6)}, ${upper.toFixed(6)}]` };
+  }
+
+  let sigma = T <= 0 ? 0.2 : Math.min(Math.max(Math.sqrt(2*Math.PI/T) * marketPrice/S, 0.05), 2.0);
+
+  function withVegaWarning(result, sigmaVal) {
+    const vAtSol = bsVega(S, K, T, r, sigmaVal, q);
+    if (vAtSol < 1e-4) {
+      result.warning = `vega at solution is ${vAtSol.toExponential(2)} — price is nearly flat in sigma ` +
+        `here (deep ITM/OTM or very short-dated). IV is poorly determined by this price.`;
+    }
+    return result;
+  }
+
+  for (let i = 0; i < maxIter; i++) {
+    const price = bsPrice(S, K, T, r, sigma, optionType, q);
+    const diff = price - marketPrice;
+    const v = bsVega(S, K, T, r, sigma, q);
+    trace.push({ n: trace.length, method: "newton", sigma, price, diff, vega: v });
+    if (Math.abs(diff) < tol && v > vegaFloor) {
+      return withVegaWarning({ iv: sigma, iterations: i+1, method: "newton", converged: true, trace }, sigma);
+    }
+    if (v < vegaFloor) break;
+    const sigmaNew = sigma - diff / v;
+    if (sigmaNew <= 0 || sigmaNew > 10) break;
+    sigma = sigmaNew;
+  }
+
+  let lo = bisectLo, hi = bisectHi;
+  let fLo = bsPrice(S, K, T, r, lo, optionType, q) - marketPrice;
+  const fHi = bsPrice(S, K, T, r, hi, optionType, q) - marketPrice;
+  if (Math.abs(fLo) < tol) return withVegaWarning({ iv:lo, iterations:0, method:"bisection", converged:true, trace }, lo);
+  if (Math.abs(fHi) < tol) return withVegaWarning({ iv:hi, iterations:0, method:"bisection", converged:true, trace }, hi);
+  if (fLo * fHi > 0) {
+    return { iv:null, iterations:0, method:"bisection", converged:false, trace,
+      error:"Bisection bracket does not contain a sign change — check inputs." };
+  }
+
+  for (let i = 0; i < maxIter; i++) {
+    const mid = (lo + hi) / 2;
+    const fMid = bsPrice(S, K, T, r, mid, optionType, q) - marketPrice;
+    trace.push({ n: trace.length, method:"bisection", sigma: mid, price: fMid + marketPrice,
+      diff: fMid, vega: bsVega(S, K, T, r, mid, q) });
+    if ((hi - lo) < tol || Math.abs(fMid) < tol) {
+      return withVegaWarning({ iv: mid, iterations: i+1, method: "bisection", converged: true, trace }, mid);
+    }
+    if (fLo * fMid < 0) hi = mid; else { lo = mid; fLo = fMid; }
+  }
+  return { iv: (lo+hi)/2, iterations: maxIter, method: "bisection", converged: false, trace,
+    error: "Max iterations reached without full convergence." };
+}
+
+// --- seedable RNG (mulberry32) + Box-Muller normals ---
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function randnArray(rng, n) {
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i += 2) {
+    let u1 = rng(); if (u1 < 1e-12) u1 = 1e-12;
+    const u2 = rng();
+    const rad = Math.sqrt(-2 * Math.log(u1));
+    out[i] = rad * Math.cos(2 * Math.PI * u2);
+    if (i + 1 < n) out[i + 1] = rad * Math.sin(2 * Math.PI * u2);
+  }
+  return out;
+}
+
+function simulateTerminalSpot(S, T, r, sigma, q, nPaths, antithetic, seed) {
+  const rng = mulberry32(seed);
+  const drift = (r - q - 0.5 * sigma * sigma) * T;
+  const diffusion = sigma * Math.sqrt(T);
+  let z;
+  if (antithetic) {
+    const half = Math.ceil(nPaths / 2);
+    const zh = randnArray(rng, half);
+    z = new Float64Array(nPaths);
+    for (let i = 0; i < nPaths; i++) z[i] = i < half ? zh[i] : -zh[i - half];
+  } else {
+    z = randnArray(rng, nPaths);
+  }
+  const ST = new Float64Array(nPaths);
+  for (let i = 0; i < nPaths; i++) ST[i] = S * Math.exp(drift + diffusion * z[i]);
+  return ST;
+}
+
+function mcPrice(S, K, T, r, sigma, q, optionType, nPaths, antithetic, seed) {
+  const ST = simulateTerminalSpot(S, T, r, sigma, q, nPaths, antithetic, seed);
+  const isCall = optionType === "call";
+  const disc = Math.exp(-r * T);
+  const discounted = new Float64Array(nPaths);
+  let sum = 0;
+  for (let i = 0; i < nPaths; i++) {
+    const payoff = isCall ? Math.max(ST[i] - K, 0) : Math.max(K - ST[i], 0);
+    discounted[i] = disc * payoff;
+    sum += discounted[i];
+  }
+  const price = sum / nPaths;
+  let sumSq = 0;
+  for (let i = 0; i < nPaths; i++) { const d = discounted[i] - price; sumSq += d * d; }
+  const stdErr = Math.sqrt(sumSq / (nPaths - 1)) / Math.sqrt(nPaths);
+  return { price, stdError: stdErr, ciLow: price - 1.96*stdErr, ciHigh: price + 1.96*stdErr, nPaths };
+}
+
+function simulateGbmPaths(S, T, r, sigma, q, nPaths, nSteps, seed) {
+  const rng = mulberry32(seed);
+  const dt = T / nSteps;
+  const drift = (r - q - 0.5 * sigma * sigma) * dt;
+  const diffusion = sigma * Math.sqrt(dt);
+  const paths = [];
+  for (let p = 0; p < nPaths; p++) {
+    const z = randnArray(rng, nSteps);
+    const path = new Float64Array(nSteps + 1);
+    let logS = Math.log(S);
+    path[0] = S;
+    for (let s = 0; s < nSteps; s++) { logS += drift + diffusion * z[s]; path[s+1] = Math.exp(logS); }
+    paths.push(path);
+  }
+  const tGrid = new Float64Array(nSteps + 1);
+  for (let i = 0; i <= nSteps; i++) tGrid[i] = i * dt;
+  return { tGrid, paths };
+}
+
+/* ============================================================
+   TINY CANVAS CHART LIBRARY — no dependencies
+   ============================================================ */
+
+const Plot = (function () {
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  function setupHiDPI(canvas) {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(rect.width, 10), h = Math.max(rect.height, 10);
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx, w, h };
+  }
+  function niceStep(range, count) {
+    if (range <= 0) return 1;
+    const rough = range / count;
+    const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+    const norm = rough / mag;
+    let step;
+    if (norm < 1.5) step = 1; else if (norm < 3) step = 2; else if (norm < 7) step = 5; else step = 10;
+    return step * mag;
+  }
+  function niceDomain(min, max, count) {
+    count = count || 5;
+    if (min === max) { min -= 1; max += 1; }
+    const step = niceStep(max - min, count);
+    const niceMin = Math.floor(min / step) * step;
+    const niceMax = Math.ceil(max / step) * step;
+    const ticks = [];
+    for (let t = niceMin; t <= niceMax + step * 1e-6; t += step) ticks.push(+t.toFixed(10));
+    return { min: niceMin, max: niceMax, ticks };
+  }
+  function fmtNum(x) {
+    if (Math.abs(x) >= 1000) return x.toFixed(0);
+    if (Math.abs(x) >= 1) return (+x.toFixed(2)).toString();
+    if (x === 0) return "0";
+    return (+x.toFixed(4)).toString();
+  }
+
+  const M = { left: 46, right: 12, top: 10, bottom: 22 };
+
+  function xOf(x, dom, w, log) {
+    const pw = w - M.left - M.right;
+    if (log) return M.left + (Math.log10(x) - Math.log10(dom.min)) / (Math.log10(dom.max) - Math.log10(dom.min)) * pw;
+    return M.left + (x - dom.min) / (dom.max - dom.min) * pw;
+  }
+  function yOf(y, dom, h) {
+    const ph = h - M.top - M.bottom;
+    return M.top + ph - (y - dom.min) / (dom.max - dom.min) * ph;
+  }
+
+  function line(canvas, opts) {
+    const { ctx, w, h } = setupHiDPI(canvas);
+    const text = cssVar("--text-muted"), grid = cssVar("--grid"), textStrong = cssVar("--text");
+    const xLog = !!opts.xLog;
+
+    let allX = [], allY = [];
+    (opts.series || []).forEach(s => s.points.forEach(p => { allX.push(p[0]); allY.push(p[1]); }));
+    if (opts.band) opts.band.forEach(p => { allY.push(p[1]); allY.push(p[2]); });
+    if (opts.hLines) opts.hLines.forEach(hl => allY.push(hl.y));
+    if (!allX.length) return;
+
+    let xDom;
+    if (xLog) {
+      xDom = { min: Math.max(1e-9, Math.min(...allX)), max: Math.max(...allX) };
+    } else {
+      xDom = niceDomain(Math.min(...allX), Math.max(...allX));
+    }
+    const yDom = opts.yDomain || niceDomain(Math.min(...allY), Math.max(...allY));
+
+    // gridlines + y ticks
+    ctx.strokeStyle = grid; ctx.fillStyle = text; ctx.font = "10px sans-serif";
+    ctx.lineWidth = 1;
+    yDom.ticks.forEach(t => {
+      if (t < yDom.min - 1e-9 || t > yDom.max + 1e-9) return;
+      const y = yOf(t, yDom, h);
+      ctx.beginPath(); ctx.moveTo(M.left, y); ctx.lineTo(w - M.right, y); ctx.stroke();
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      ctx.fillText(fmtNum(t), M.left - 6, y);
+    });
+    // x ticks
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    if (xLog) {
+      const p0 = Math.floor(Math.log10(xDom.min)), p1 = Math.ceil(Math.log10(xDom.max));
+      for (let p = p0; p <= p1; p++) {
+        const val = Math.pow(10, p);
+        if (val < xDom.min || val > xDom.max) continue;
+        const x = xOf(val, xDom, w, true);
+        ctx.fillText("10" + supNum(p), x, h - M.bottom + 4);
+      }
+    } else {
+      xDom.ticks.forEach(t => {
+        if (t < xDom.min - 1e-9 || t > xDom.max + 1e-9) return;
+        const x = xOf(t, xDom, w, false);
+        ctx.fillText(fmtNum(t), x, h - M.bottom + 4);
+      });
+    }
+
+    // axes
+    ctx.strokeStyle = text;
+    ctx.beginPath(); ctx.moveTo(M.left, M.top); ctx.lineTo(M.left, h - M.bottom); ctx.lineTo(w - M.right, h - M.bottom); ctx.stroke();
+
+    // shaded band (e.g. CI)
+    if (opts.band && opts.band.length > 1) {
+      ctx.fillStyle = opts.bandColor || "rgba(59,111,224,0.15)";
+      ctx.beginPath();
+      opts.band.forEach((p, i) => { const x = xOf(p[0], xDom, w, xLog), y = yOf(p[1], yDom, h); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); });
+      for (let i = opts.band.length - 1; i >= 0; i--) { const p = opts.band[i]; ctx.lineTo(xOf(p[0], xDom, w, xLog), yOf(p[2], yDom, h)); }
+      ctx.closePath(); ctx.fill();
+    }
+
+    // reference hLines
+    (opts.hLines || []).forEach(hl => {
+      const y = yOf(hl.y, yDom, h);
+      ctx.strokeStyle = hl.color || text;
+      ctx.setLineDash(hl.dash || [5, 4]);
+      ctx.beginPath(); ctx.moveTo(M.left, y); ctx.lineTo(w - M.right, y); ctx.stroke();
+      ctx.setLineDash([]);
+      if (hl.label) { ctx.fillStyle = hl.color || text; ctx.textAlign = "left"; ctx.textBaseline = "bottom"; ctx.fillText(hl.label, M.left + 4, y - 2); }
+    });
+
+    // vertical marker (e.g. current spot)
+    if (opts.vLine !== undefined) {
+      const x = xOf(opts.vLine, xDom, w, xLog);
+      ctx.strokeStyle = opts.vLineColor || textStrong;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(x, M.top); ctx.lineTo(x, h - M.bottom); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // series lines
+    (opts.series || []).forEach(s => {
+      ctx.strokeStyle = s.color; ctx.lineWidth = s.width || 2;
+      ctx.setLineDash(s.dashed ? [5, 4] : []);
+      ctx.beginPath();
+      s.points.forEach((p, i) => { const x = xOf(p[0], xDom, w, xLog), y = yOf(p[1], yDom, h); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); });
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (s.points2) { // second style segment (e.g. dashed tail like a tangent)
+        ctx.strokeStyle = s.color2 || s.color; ctx.setLineDash([4,3]);
+        ctx.beginPath();
+        s.points2.forEach((p, i) => { const x = xOf(p[0], xDom, w, xLog), y = yOf(p[1], yDom, h); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); });
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+      if (s.dots) {
+        ctx.fillStyle = s.color;
+        s.points.forEach(p => { const x = xOf(p[0], xDom, w, xLog), y = yOf(p[1], yDom, h); ctx.beginPath(); ctx.arc(x, y, 2.4, 0, 7); ctx.fill(); });
+      }
+    });
+
+    // legend
+    const labeled = (opts.series || []).filter(s => s.label);
+    if (labeled.length) {
+      ctx.font = "11px sans-serif"; ctx.textBaseline = "middle";
+      let lx = w - M.right - 8, ly = M.top + 10;
+      const widths = labeled.map(s => ctx.measureText(s.label).width + 22);
+      const legendW = Math.max(...widths);
+      lx -= legendW;
+      ctx.fillStyle = cssVar("--panel-bg");
+      ctx.globalAlpha = 0.82;
+      ctx.fillRect(lx - 6, ly - 9, legendW + 10, labeled.length * 15 + 4);
+      ctx.globalAlpha = 1;
+      labeled.forEach((s, i) => {
+        const y = ly + i * 15;
+        ctx.strokeStyle = s.color; ctx.lineWidth = 2;
+        ctx.setLineDash(s.dashed ? [4,3] : []);
+        ctx.beginPath(); ctx.moveTo(lx, y); ctx.lineTo(lx + 14, y); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = text; ctx.textAlign = "left";
+        ctx.fillText(s.label, lx + 18, y);
+      });
+    }
+  }
+
+  function supNum(n) {
+    const map = {"-":"⁻","0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹"};
+    return String(n).split("").map(c => map[c] || c).join("");
+  }
+
+  function hist(canvas, data, opts) {
+    opts = opts || {};
+    const { ctx, w, h } = setupHiDPI(canvas);
+    const text = cssVar("--text-muted"), textStrong = cssVar("--text");
+    if (!data.length) return;
+    const min = Math.min(...data), max = Math.max(...data);
+    const bins = opts.bins || 40;
+    const yDom = niceDomain(min, max);
+    const counts = new Array(bins).fill(0);
+    const binW = (yDom.max - yDom.min) / bins;
+    data.forEach(v => {
+      let idx = Math.floor((v - yDom.min) / binW);
+      if (idx < 0) idx = 0; if (idx >= bins) idx = bins - 1;
+      counts[idx]++;
+    });
+    const maxCount = Math.max(...counts);
+    const xDom = niceDomain(0, maxCount, 4);
+
+    ctx.strokeStyle = cssVar("--grid"); ctx.fillStyle = text; ctx.font = "10px sans-serif";
+    xDom.ticks.forEach(t => {
+      if (t > xDom.max + 1e-9) return;
+      const ph = h - M.top - M.bottom;
+      const x = M.left + (t - xDom.min) / (xDom.max - xDom.min) * (w - M.left - M.right);
+      ctx.beginPath(); ctx.moveTo(x, M.top); ctx.lineTo(x, h - M.bottom); ctx.stroke();
+      ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillText(fmtNum(t), x, h - M.bottom + 4);
+    });
+    ctx.strokeStyle = textStrong;
+    ctx.beginPath(); ctx.moveTo(M.left, M.top); ctx.lineTo(M.left, h - M.bottom); ctx.lineTo(w - M.right, h - M.bottom); ctx.stroke();
+
+    ctx.fillStyle = opts.color || "var(--c0)";
+    ctx.fillStyle = opts.color || cssVar("--c0");
+    const ph = h - M.top - M.bottom, pw = w - M.left - M.right;
+    for (let i = 0; i < bins; i++) {
+      const y0 = yOf(yDom.min + i * binW, yDom, h);
+      const y1 = yOf(yDom.min + (i + 1) * binW, yDom, h);
+      const barW = counts[i] / xDom.max * pw;
+      ctx.fillRect(M.left, Math.min(y0,y1), barW, Math.abs(y1 - y0) - 1);
+    }
+    // y ticks (value axis)
+    ctx.fillStyle = text; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    yDom.ticks.forEach(t => {
+      if (t < yDom.min - 1e-9 || t > yDom.max + 1e-9) return;
+      const y = yOf(t, yDom, h);
+      ctx.fillText(fmtNum(t), M.left - 6, y);
+    });
+    if (opts.hLine !== undefined) {
+      const y = yOf(opts.hLine, yDom, h);
+      ctx.strokeStyle = textStrong; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(M.left, y); ctx.lineTo(w - M.right, y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  return { line, hist, setupHiDPI, niceDomain };
+})();
+
+/* ============================================================
+   APP STATE / UI WIRING
+   ============================================================ */
+
+function fmt(x, dp) { dp = dp === undefined ? 4 : dp; return (x === null || x === undefined || isNaN(x)) ? "—" : x.toFixed(dp); }
+const TIPS = {
+  "Price": "Today's fair value of the option under Black-Scholes, given the inputs on the left.",
+  "Delta (Δ)": "Δ = ∂Price/∂Spot — price change per $1 move in the stock. Also ≈ the hedge ratio: shares to hold per option sold.",
+  "Gamma (Γ)": "Γ = ∂Delta/∂Spot — how fast delta itself changes. Peaks near the strike, especially close to expiry.",
+  "Vega (V)": "V = ∂Price/∂Volatility — price change per 1 vol-point (1% of σ) move in implied vol. Vega isn't actually a Greek letter — the \"V\" is a stylized glyph invented to loosely resemble the real Greek letter nu (ν), not an actual member of the Greek alphabet like the others on this page.",
+  "Theta (Θ)": "Θ = ∂Price/∂Time — time decay: value lost to the passage of one day, all else equal (usually negative for long options).",
+  "Rho (ρ)": "ρ = ∂Price/∂Rate — price change per 1 percentage-point move in the risk-free rate.",
+  "Vanna": "∂Delta/∂Volatility (= ∂Vega/∂Spot) — how delta shifts as vol changes, or equivalently how vega shifts as spot moves. Like vega, \"vanna\" isn't an actual Greek letter — no standard symbol for it.",
+  "Vomma": "∂Vega/∂Volatility — \"vol convexity\": how vega itself changes as vol changes. Also not a real Greek letter.",
+  "Implied vol (σ)": "σ = the vol that, fed back into bs_price, reproduces the market price exactly (or as close as the solver could get). Sigma is the one all the others are secretly about — every Greek here is a derivative of price with respect to something, and vol is the one input nobody can observe directly.",
+  "Converged": "Whether the solver met its tolerance — \"no\" means it hit the iteration cap without pinning down a precise answer.",
+  "Method": "Which phase solved it: Newton-Raphson (fast, uses vega as the slope) or its bisection fallback (used when vega is too flat to trust).",
+  "Iterations": "How many solver steps were taken before convergence (or before giving up).",
+  "MC price": "Monte Carlo estimate: the average discounted payoff across all simulated paths.",
+  "Std error": "Standard error of the MC price — std(discounted payoffs) / √n_paths. Shrinks like 1/√n as paths increase.",
+  "95% CI": "95% confidence interval for the MC price, price ± 1.96 × std error. A single MC number means little without this.",
+  "Black-Scholes": "The closed-form price for the same inputs — what the MC estimate should converge to as paths increase.",
+  "Abs error": "|MC price − Black-Scholes price| — how far off this particular simulation landed.",
+  "Paths": "Number of simulated terminal-price draws averaged to produce the MC price.",
+};
+function statCard(label, value, sub) {
+  const tip = TIPS[label];
+  const tipAttr = tip ? ` data-tip="${tip.replace(/"/g, "&quot;")}" tabindex="0"` : "";
+  // the label is CSS-uppercased for the small-caps look, but that maps Greek
+  // ν/ρ to their capitals Ν/Ρ — visual twins of Latin N/P. Exempt the "(sym)"
+  // suffix from the transform so it stays legible as the intended letter.
+  const displayLabel = label.replace(/\s*\(([^)]+)\)$/, ' <span class="sym">($1)</span>');
+  return `<div class="stat-card"${tipAttr}><div class="label">${displayLabel}</div><div class="value">${value}</div>${sub ? `<div class="sub">${sub}</div>` : ""}</div>`;
+}
+
+// Pairs a <input type=range> with a <input type=number>, keeping both in sync.
+// scale converts the range's raw value to the number the user sees/types
+// (e.g. sigma stored as 0.20 raw, shown/typed as "20.0" with scale=100).
+function bindField(rangeId, numId, onChange, opts) {
+  opts = opts || {};
+  const scale = opts.scale || 1;
+  const decimals = opts.decimals === undefined ? 2 : opts.decimals;
+  const range = document.getElementById(rangeId);
+  const num = document.getElementById(numId);
+  const min = +range.min, max = +range.max;
+
+  function fromRange() {
+    const raw = +range.value;
+    num.value = (raw * scale).toFixed(decimals);
+    onChange(raw);
+  }
+  function fromNumber(finalize) {
+    let disp = +num.value;
+    if (isNaN(disp)) { if (!finalize) return; disp = +range.value * scale; }
+    let raw = disp / scale;
+    raw = Math.min(max, Math.max(min, raw));
+    range.value = raw;
+    onChange(raw);
+    if (finalize) num.value = (raw * scale).toFixed(decimals);
+  }
+  range.addEventListener("input", fromRange);
+  num.addEventListener("input", () => fromNumber(false));
+  num.addEventListener("change", () => fromNumber(true));
+  num.addEventListener("blur", () => fromNumber(true));
+  num.addEventListener("keydown", e => { if (e.key === "Enter") { fromNumber(true); num.blur(); } });
+  fromRange();
+  return fromRange;
+}
+function bindToggle(idA, idB, onChange) {
+  const a = document.getElementById(idA), b = document.getElementById(idB);
+  let state = "a";
+  a.addEventListener("click", () => { state = "a"; a.classList.add("active"); b.classList.remove("active"); onChange("call"); });
+  b.addEventListener("click", () => { state = "b"; b.classList.add("active"); a.classList.remove("active"); onChange("put"); });
+  return () => (state === "a" ? "call" : "put");
+}
+
+/* ---------------- TAB 1: Black-Scholes & Greeks ---------------- */
+
+const bsState = { S: 100, K: 100, T: 1, sigma: 0.20, r: 0.05, q: 0, optionType: "call" };
+
+bindField("bs_S", "bs_S_num", v => { bsState.S = v; drawBS(); });
+bindField("bs_K", "bs_K_num", v => { bsState.K = v; drawBS(); });
+bindField("bs_T", "bs_T_num", v => { bsState.T = v; drawBS(); });
+bindField("bs_sigma", "bs_sigma_num", v => { bsState.sigma = v; drawBS(); }, { scale: 100, decimals: 1 });
+bindField("bs_r", "bs_r_num", v => { bsState.r = v; drawBS(); }, { scale: 100, decimals: 1 });
+bindField("bs_q", "bs_q_num", v => { bsState.q = v; drawBS(); }, { scale: 100, decimals: 1 });
+bindToggle("bs_call_btn", "bs_put_btn", ot => { bsState.optionType = ot; drawBS(); });
+
+function drawBS() {
+  const { S, K, T, sigma, r, q, optionType } = bsState;
+  const price = bsPrice(S, K, T, r, sigma, optionType, q);
+  const delta = bsDelta(S, K, T, r, sigma, optionType, q);
+  const gamma = bsGamma(S, K, T, r, sigma, q);
+  const vega = bsVega(S, K, T, r, sigma, q);
+  const theta = bsTheta(S, K, T, r, sigma, optionType, q);
+  const rho = bsRho(S, K, T, r, sigma, optionType, q);
+  const vanna = bsVanna(S, K, T, r, sigma, q);
+  const vomma = bsVomma(S, K, T, r, sigma, q);
+
+  document.getElementById("bs_stats").innerHTML = [
+    statCard("Price", fmt(price, 4)),
+    statCard("Delta (Δ)", fmt(delta, 4)),
+    statCard("Gamma (Γ)", fmt(gamma, 4)),
+    statCard("Vega (V)", fmt(vega/100, 4), "per vol-pt"),
+    statCard("Theta (Θ)", fmt(theta/365, 4), "per day"),
+    statCard("Rho (ρ)", fmt(rho/100, 4), "per 1%"),
+    statCard("Vanna", fmt(vanna, 4)),
+    statCard("Vomma", fmt(vomma, 4)),
+  ].join("");
+
+  const lo = Math.max(1, Math.min(S, K) * 0.4), hi = Math.max(S, K) * 1.6;
+  const N = 160, xs = [];
+  for (let i = 0; i <= N; i++) xs.push(lo + (hi - lo) * i / N);
+
+  const callPts = xs.map(x => [x, bsPrice(x, K, T, r, sigma, "call", q)]);
+  const putPts = xs.map(x => [x, bsPrice(x, K, T, r, sigma, "put", q)]);
+  const intrinsicCall = xs.map(x => [x, Math.max(x - K, 0)]);
+  const intrinsicPut = xs.map(x => [x, Math.max(K - x, 0)]);
+
+  const span = (hi - lo) * 0.12;
+  const tangent = [[S - span, price - delta * span], [S + span, price + delta * span]];
+
+  Plot.line(document.getElementById("bs_priceChart"), {
+    series: [
+      { points: callPts, color: getCssColor("--c0"), label: "call" },
+      { points: putPts, color: getCssColor("--c1"), label: "put" },
+      { points: intrinsicCall, color: getCssColor("--text-muted"), width: 1, dashed: true },
+      { points: intrinsicPut, color: getCssColor("--text-muted"), width: 1, dashed: true },
+      { points: tangent, color: getCssColor("--c2"), width: 2, dashed: true, label: "tangent (delta)" },
+    ],
+    vLine: S,
+  });
+
+  function greekChart(id, callFn, putFn, split) {
+    const callPts2 = xs.map(x => [x, callFn(x)]);
+    const series = [{ points: callPts2, color: getCssColor("--c0") }];
+    if (split) series.push({ points: xs.map(x => [x, putFn(x)]), color: getCssColor("--c1") });
+    Plot.line(document.getElementById(id), { series, vLine: S });
+  }
+  greekChart("g_delta", x => bsDelta(x, K, T, r, sigma, "call", q), x => bsDelta(x, K, T, r, sigma, "put", q), true);
+  greekChart("g_gamma", x => bsGamma(x, K, T, r, sigma, q));
+  greekChart("g_vega", x => bsVega(x, K, T, r, sigma, q) / 100);
+  greekChart("g_theta", x => bsTheta(x, K, T, r, sigma, "call", q) / 365, x => bsTheta(x, K, T, r, sigma, "put", q) / 365, true);
+  greekChart("g_rho", x => bsRho(x, K, T, r, sigma, "call", q) / 100, x => bsRho(x, K, T, r, sigma, "put", q) / 100, true);
+  greekChart("g_vanna", x => bsVanna(x, K, T, r, sigma, q));
+}
+
+function getCssColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+/* ---------------- TAB 2: Implied Volatility ---------------- */
+
+const ivState = { S: 100, K: 100, T: 1, r: 0.05, q: 0, optionType: "call", trueSigma: null };
+
+bindField("iv_S", "iv_S_num", v => { ivState.S = v; });
+bindField("iv_K", "iv_K_num", v => { ivState.K = v; });
+bindField("iv_T", "iv_T_num", v => { ivState.T = v; });
+bindField("iv_r", "iv_r_num", v => { ivState.r = v; }, { scale: 100, decimals: 1 });
+bindField("iv_q", "iv_q_num", v => { ivState.q = v; }, { scale: 100, decimals: 1 });
+bindField("iv_trueSigma", "iv_trueSigma_num", () => {}, { scale: 100, decimals: 1 });
+bindToggle("iv_call_btn", "iv_put_btn", ot => { ivState.optionType = ot; });
+
+document.getElementById("iv_generate_btn").addEventListener("click", () => {
+  const sigmaTrue = +document.getElementById("iv_trueSigma").value;
+  const { S, K, T, r, q, optionType } = ivState;
+  const p = bsPrice(S, K, T, r, sigmaTrue, optionType, q);
+  document.getElementById("iv_marketPrice").value = p.toFixed(6);
+  ivState.trueSigma = sigmaTrue;
+});
+
+document.getElementById("iv_solve_btn").addEventListener("click", solveIV);
+
+function solveIV() {
+  const { S, K, T, r, q, optionType } = ivState;
+  const marketPrice = +document.getElementById("iv_marketPrice").value;
+  const result = impliedVol(marketPrice, S, K, T, r, q, optionType);
+
+  const msgEl = document.getElementById("iv_message");
+  if (result.error && result.iv === null) {
+    msgEl.innerHTML = `<div class="msg err">${result.error}</div>`;
+  } else if (result.warning) {
+    msgEl.innerHTML = `<div class="msg warn">${result.warning}</div>`;
+  } else {
+    msgEl.innerHTML = `<div class="msg ok">Converged via ${result.method} in ${result.iterations} iteration(s).</div>`;
+  }
+
+  document.getElementById("iv_stats").innerHTML = [
+    statCard("Implied vol (σ)", result.iv === null ? "—" : (result.iv*100).toFixed(3) + "%"),
+    statCard("Converged", result.converged ? "yes" : "no"),
+    statCard("Method", result.method || "—"),
+    statCard("Iterations", result.iterations ?? "—"),
+  ].join("");
+
+  const newtonPts = result.trace.filter(t => t.method === "newton").map(t => [t.n, t.sigma]);
+  const bisectPts = result.trace.filter(t => t.method === "bisection").map(t => [t.n, t.sigma]);
+  const hLines = [];
+  if (ivState.trueSigma !== null) hLines.push({ y: ivState.trueSigma, color: getCssColor("--c2"), label: "true σ" });
+
+  Plot.line(document.getElementById("iv_traceChart"), {
+    series: [
+      { points: newtonPts, color: getCssColor("--c0"), label: "newton", dots: true },
+      { points: bisectPts, color: getCssColor("--c3"), label: "bisection", dots: true },
+    ].filter(s => s.points.length),
+    hLines,
+  });
+
+  const tbody = document.querySelector("#iv_traceTable tbody");
+  tbody.innerHTML = result.trace.map(t =>
+    `<tr><td>${t.n}</td><td>${t.method}</td><td>${t.sigma.toFixed(6)}</td><td>${t.price.toFixed(6)}</td><td>${t.diff.toExponential(2)}</td><td>${t.vega.toExponential(2)}</td></tr>`
+  ).join("");
+}
+
+/* ---------------- TAB 3: Monte Carlo ---------------- */
+
+const mcState = { S: 100, K: 100, T: 1, sigma: 0.20, r: 0.05, q: 0, optionType: "call", nPaths: 50000, seed: 42, antithetic: true };
+
+bindField("mc_S", "mc_S_num", v => { mcState.S = v; });
+bindField("mc_K", "mc_K_num", v => { mcState.K = v; });
+bindField("mc_T", "mc_T_num", v => { mcState.T = v; });
+bindField("mc_sigma", "mc_sigma_num", v => { mcState.sigma = v; }, { scale: 100, decimals: 1 });
+bindField("mc_r", "mc_r_num", v => { mcState.r = v; }, { scale: 100, decimals: 1 });
+bindField("mc_q", "mc_q_num", v => { mcState.q = v; }, { scale: 100, decimals: 1 });
+bindToggle("mc_call_btn", "mc_put_btn", ot => { mcState.optionType = ot; });
+
+const MC_MIN = 1000, MC_MAX = 200000;
+function pathsFromSlider(v) { return Math.round(MC_MIN * Math.pow(MC_MAX / MC_MIN, v / 100)); }
+function sliderFromPaths(n) { return Math.round(Math.log(n / MC_MIN) / Math.log(MC_MAX / MC_MIN) * 100); }
+{
+  const range = document.getElementById("mc_nPathsSlider");
+  const num = document.getElementById("mc_nPaths_num");
+  function fromRange() { mcState.nPaths = pathsFromSlider(+range.value); num.value = mcState.nPaths; }
+  function fromNumber(finalize) {
+    let n = +num.value;
+    if (isNaN(n)) { if (!finalize) return; n = mcState.nPaths; }
+    n = Math.min(MC_MAX, Math.max(MC_MIN, Math.round(n)));
+    mcState.nPaths = n;
+    range.value = sliderFromPaths(n);
+    if (finalize) num.value = n;
+  }
+  range.addEventListener("input", fromRange);
+  num.addEventListener("input", () => fromNumber(false));
+  num.addEventListener("change", () => fromNumber(true));
+  num.addEventListener("blur", () => fromNumber(true));
+  num.addEventListener("keydown", e => { if (e.key === "Enter") { fromNumber(true); num.blur(); } });
+  fromRange();
+}
+
+document.getElementById("mc_seed").addEventListener("input", e => { mcState.seed = (+e.target.value) >>> 0; });
+document.getElementById("mc_antithetic").addEventListener("change", e => { mcState.antithetic = e.target.checked; });
+document.getElementById("mc_simulate_btn").addEventListener("click", runMC);
+
+function runMC() {
+  const { S, K, T, sigma, r, q, optionType, nPaths, seed, antithetic } = mcState;
+  const bs = bsPrice(S, K, T, r, sigma, optionType, q);
+  const result = mcPrice(S, K, T, r, sigma, q, optionType, nPaths, antithetic, seed);
+  const absErr = Math.abs(result.price - bs);
+
+  document.getElementById("mc_stats").innerHTML = [
+    statCard("MC price", fmt(result.price, 4)),
+    statCard("Std error", fmt(result.stdError, 4)),
+    statCard("95% CI", `[${fmt(result.ciLow,3)}, ${fmt(result.ciHigh,3)}]`),
+    statCard("Black-Scholes", fmt(bs, 4)),
+    statCard("Abs error", fmt(absErr, 4)),
+    statCard("Paths", nPaths.toLocaleString()),
+  ].join("");
+
+  // sample paths
+  const { tGrid, paths } = simulateGbmPaths(S, T, r, sigma, q, 60, 120, seed);
+  const series = paths.map(p => {
+    const itm = optionType === "call" ? p[p.length-1] > K : p[p.length-1] < K;
+    return { points: Array.from(tGrid).map((t, i) => [t, p[i]]), color: itm ? getCssColor("--c0") : getCssColor("--c1"), width: 1 };
+  });
+  series.push({ points: [[0, K], [T, K]], color: getCssColor("--text-muted"), width: 1, dashed: true, label: `K=${K.toFixed(0)}` });
+  Plot.line(document.getElementById("mc_pathsChart"), { series });
+
+  // terminal distribution
+  const bigST = simulateTerminalSpot(S, T, r, sigma, q, 8000, antithetic, seed);
+  Plot.hist(document.getElementById("mc_histChart"), Array.from(bigST), { bins: 60, hLine: K, color: getCssColor("--c0") });
+
+  // convergence sweep
+  const counts = [];
+  const steps = 16;
+  for (let i = 0; i < steps; i++) {
+    const n = Math.round(200 * Math.pow(nPaths / 200, i / (steps - 1)));
+    counts.push(n);
+  }
+  const convPts = [], bandPts = [];
+  counts.forEach(n => {
+    const r2 = mcPrice(S, K, T, r, sigma, q, optionType, n, antithetic, seed);
+    convPts.push([n, r2.price]);
+    bandPts.push([n, r2.ciLow, r2.ciHigh]);
+  });
+  Plot.line(document.getElementById("mc_convChart"), {
+    xLog: true,
+    series: [{ points: convPts, color: getCssColor("--c0"), label: "MC price" }],
+    band: bandPts,
+    bandColor: hexToRgba(getCssColor("--c0"), 0.15),
+    hLines: [{ y: bs, color: getCssColor("--text"), label: `Black-Scholes = ${bs.toFixed(4)}` }],
+  });
+}
+
+function hexToRgba(hex, alpha) {
+  hex = hex.replace("#", "");
+  if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
+  const num = parseInt(hex, 16);
+  const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ---------------- glossary ---------------- */
+
+// shared building blocks so the Greeks' formula cards don't re-derive d1/d2 from scratch each time
+const D1D2_WHERE = [
+  "d_1 = \\dfrac{\\ln(S/K) + \\left(r - q + \\dfrac{1}{2}\\sigma^2\\right)T}{\\sigma\\sqrt{T}}",
+  "d_2 = d_1 - \\sigma\\sqrt{T}",
+];
+const CORE_LEGEND = [
+  { sym: "S", meaning: "spot — current stock price" },
+  { sym: "K", meaning: "strike price" },
+  { sym: "T", meaning: "time to expiry, in years" },
+  { sym: "r", meaning: "risk-free rate" },
+  { sym: "q", meaning: "dividend yield" },
+  { sym: "σ", meaning: "volatility" },
+];
+const N_LEGEND = { sym: "N(·)", meaning: "standard normal CDF — think \"probability, roughly\"" };
+const PHI_LEGEND = { sym: "φ(·)", meaning: "standard normal PDF (the bell-curve density, not a probability)" };
+
+const GLOSSARY = [
+  { term: "Option", def: "A contract giving the right, but not the obligation, to buy (call) or sell (put) a stock at a fixed price by a fixed date.",
+    note: "Think of it like a reservation, not a purchase. If you have the right to buy a stock at $50 and it's trading at $70 on the expiry date, you use that right and instantly pocket the $20 difference. If it drops to $30 instead, you just don't bother — you're never forced to go through with it. The most you can ever lose is what you paid for the option itself, no matter how badly the stock does." },
+  { term: "Call", def: "An option to buy the stock at the strike. Payoff at expiry: max(S_T − K, 0).",
+    note: "A bet that the stock will go up. You pay a small amount now for the right to buy later at today's price. If the stock rallies, you get to buy cheap — the option becomes valuable. If it falls, you simply walk away and lose only what you paid upfront.",
+    formula: { main: ["\\text{Payoff} = \\max(S_T - K,\\ 0)"],
+      legend: [{ sym: "S<sub>T</sub>", meaning: "stock price at expiry" }, { sym: "K", meaning: "strike price" }] } },
+  { term: "Put", def: "An option to sell the stock at the strike. Payoff at expiry: max(K − S_T, 0).",
+    note: "The mirror image of a call — a bet that the stock will go down. It gives you the right to sell at the strike price even if the market has crashed well below it. A lot of people use puts as insurance on stock they already own.",
+    formula: { main: ["\\text{Payoff} = \\max(K - S_T,\\ 0)"],
+      legend: [{ sym: "S<sub>T</sub>", meaning: "stock price at expiry" }, { sym: "K", meaning: "strike price" }] } },
+  { term: "Strike", sym: "K", def: "The fixed price written into the option contract.",
+    note: "This price is locked in when you buy the option and never changes. It's like a coupon that says \"buy this stock for $100,\" no matter what the stock actually costs on the day you use it." },
+  { term: "Spot", sym: "S", def: "The stock's current market price.",
+    note: "Just the price you'd pay to buy the stock right now, with no option involved. Everything in this dashboard is really about comparing this live, moving number against the fixed strike price." },
+  { term: "Expiry / Maturity", sym: "T", def: "Time remaining until the option expires, measured in years (0.5 = 6 months) throughout this repo.",
+    note: "The deadline. After this date, the contract is worthless no matter what happens — it's use-it-or-lose-it. This dashboard measures it in years, so 3 months is entered as 0.25 and 1 week is about 0.02." },
+  { term: "Premium", def: "The price paid to buy an option — what black_scholes.py's bs_price() or monte_carlo.py's mc_price() compute.",
+    note: "The sticker price you actually pay upfront to own the option. This is the number every pricing formula in this dashboard is solving for. Once paid, it's gone — the maximum you can lose on the trade, however badly it goes." },
+  { term: "ITM / ATM / OTM", def: "In/at/out-of-the-money — whether the strike is favorable, right at, or unfavorable relative to the current spot.",
+    note: "A snapshot of whether the option would be worth exercising right this second. ITM (in-the-money) means yes, it'd pay off now. OTM (out-of-the-money) means it'd be worthless if exercised today. ATM (at-the-money) is the borderline, where spot and strike are about equal." },
+  { term: "Intrinsic value", def: "What an option would be worth if exercised right now: max(S−K, 0) for a call, max(K−S, 0) for a put. The floor an option's price can't fall below.",
+    note: "The \"cash it in today\" value. If the stock is at $110 and your call's strike is $100, exercising right now nets you $10 — that's the intrinsic value. It can never go negative; you'd just choose not to exercise instead.",
+    formula: { main: ["\\text{Call: } \\max(S-K,\\ 0)", "\\text{Put: } \\max(K-S,\\ 0)"],
+      legend: [{ sym: "S", meaning: "current stock price" }, { sym: "K", meaning: "strike price" }] } },
+  { term: "Time value", def: "Premium minus intrinsic value — the extra worth from time remaining and uncertainty before expiry. Decays to zero as expiry approaches (see Theta).",
+    note: "The \"extra\" the market pays on top of cash-it-in-today value, because there's still time left for things to improve. A stock could still rally before expiry, so the option is worth more than its intrinsic value alone. This portion melts away as expiry gets closer — that melting is exactly what theta measures.",
+    formula: { main: ["\\text{Time value} = \\text{Premium} - \\text{Intrinsic value}"] } },
+  { term: "Volatility", sym: "σ", def: "Annualized standard deviation of the stock's returns. The one input nobody can observe directly — either estimated from history (realized vol) or backed out from prices (implied vol).",
+    note: "How jumpy a stock is. A boring utility stock that barely moves has low volatility; a hyped-up stock that can double or halve on news has high volatility. It's usually quoted as a percentage per year — 20% roughly means the stock's return tends to swing within about ±20% over a year." },
+  { term: "Implied volatility", def: "The σ that, fed back into the pricing model, reproduces an observed market price exactly. The market's own forward-looking forecast, extracted from what people actually pay. See implied_vol.py.",
+    note: "Instead of guessing volatility yourself, you work backwards from what people are actually paying for an option and figure out what volatility assumption would justify that price. It's basically the market's crowd-sourced guess at how wild the stock will be between now and expiry.",
+    formula: { main: ["\\text{Find } \\sigma \\text{ such that } C_{BS}(S,K,T,r,\\sigma,q) = C_{\\text{market}}"],
+      legend: [{ sym: "C<sub>BS</sub>(…)", meaning: "the Black-Scholes price, as a function of σ" }, { sym: "C<sub>market</sub>", meaning: "the option's observed market price" }] } },
+  { term: "Realized volatility", def: "The volatility a stock actually experienced over some historical window — as opposed to implied vol, which is a forecast baked into current option prices.",
+    note: "What actually happened, measured after the fact from real price history. Implied vol is a forecast made in advance; realized vol is the truth once time has passed. The gap between the two is exactly what a delta-hedging strategy makes or loses money on.",
+    formula: { main: ["\\sigma_{\\text{annualized}} = s \\times \\sqrt{252}"],
+      where: ["s = \\text{sample std dev of daily log returns } \\ln(S_i / S_{i-1})"],
+      legend: [{ sym: "s", meaning: "the daily standard deviation, before annualizing" }, { sym: "252", meaning: "typical trading days per year — the annualization convention" }] } },
+  { term: "Risk-free rate", sym: "r", def: "The return on a theoretically safe asset (e.g. short-dated Treasuries); used for discounting and as the risk-neutral drift.",
+    note: "The return you could get with basically zero risk, like a short-term government bond. It matters here because a dollar today is worth more than a dollar later — this rate is used to translate a future payoff back into today's money." },
+  { term: "Dividend yield", sym: "q", def: "Continuous dividend rate paid by the stock. Reduces the risk-neutral drift, since a shareholder captures dividends an option holder doesn't.",
+    note: "If a stock pays dividends, only people who actually own the shares get that cash — an option holder doesn't. That missed income slightly lowers what the option is worth compared to a stock that pays no dividends at all." },
+  { term: "Delta", sym: "Δ", def: "∂Price/∂Spot — price change per $1 move in the stock. Also ≈ the hedge ratio: shares to hold per option sold.",
+    note: "If the stock goes up $1, how much does my option gain? Delta answers that. A delta of 0.60 means the option gains roughly 60 cents for every $1 the stock rises. It also roughly tells you the odds of finishing in-the-money, and how many shares you'd need to hold to hedge one option.",
+    formula: { main: ["\\Delta_{\\text{call}} = e^{-qT} N(d_1)", "\\Delta_{\\text{put}} = e^{-qT}\\big(N(d_1) - 1\\big)"],
+      where: D1D2_WHERE, legend: [...CORE_LEGEND, N_LEGEND] } },
+  { term: "Gamma", sym: "Γ", def: "∂Delta/∂Spot — how fast delta itself changes. Peaks near the strike, especially close to expiry.",
+    note: "Delta isn't fixed — it shifts as the stock moves. Gamma measures how fast delta itself changes. High gamma means your hedge needs constant adjusting; it's highest for at-the-money options that are close to expiring.",
+    formula: { main: ["\\Gamma = \\dfrac{e^{-qT}\\,\\varphi(d_1)}{S\\,\\sigma\\sqrt{T}}"],
+      where: D1D2_WHERE, legend: [...CORE_LEGEND, PHI_LEGEND] } },
+  { term: "Vega", sym: "V", def: "∂Price/∂Volatility — price change per 1 vol-point move in implied vol. Not actually a Greek letter — the glyph is a stylized V invented to loosely resemble nu (ν).",
+    note: "How much the option's price moves if the market's volatility forecast shifts by 1%, even if the stock price itself doesn't budge. It's a pure bet on \"how wild will this stock be,\" totally separate from a bet on which direction it goes.",
+    formula: { main: ["V = S\\,e^{-qT}\\,\\varphi(d_1)\\,\\sqrt{T}"],
+      where: D1D2_WHERE, legend: [...CORE_LEGEND, PHI_LEGEND] } },
+  { term: "Theta", sym: "Θ", def: "∂Price/∂Time — time decay: value lost to the passage of one day, all else equal.",
+    note: "The rent you pay just for time passing. Every day that goes by, an option loses a little value on its own, because there's less time left for something favorable to happen. This shows up as a negative number for someone who owns the option.",
+    formula: { main: [
+        "\\Theta_{\\text{call}} = -\\dfrac{S e^{-qT}\\varphi(d_1)\\sigma}{2\\sqrt{T}} - rKe^{-rT}N(d_2) + qSe^{-qT}N(d_1)",
+        "\\Theta_{\\text{put}} = -\\dfrac{S e^{-qT}\\varphi(d_1)\\sigma}{2\\sqrt{T}} + rKe^{-rT}N(-d_2) - qSe^{-qT}N(-d_1)",
+      ], where: D1D2_WHERE, legend: [...CORE_LEGEND, N_LEGEND, PHI_LEGEND] } },
+  { term: "Rho", sym: "ρ", def: "∂Price/∂Rate — price change per 1 percentage-point move in the risk-free rate.",
+    note: "How sensitive the option's price is to interest rates. Usually the least important Greek for a short-dated stock option, but it matters more the longer you have until expiry.",
+    formula: { main: ["\\rho_{\\text{call}} = K T e^{-rT} N(d_2)", "\\rho_{\\text{put}} = -K T e^{-rT} N(-d_2)"],
+      where: D1D2_WHERE, legend: [...CORE_LEGEND, N_LEGEND] } },
+  { term: "Vanna", def: "∂Delta/∂Volatility (= ∂Vega/∂Spot) — how delta shifts as vol changes. Like vega, not an actual Greek letter.",
+    note: "A second-order Greek: it tracks how delta changes when volatility changes (or, equivalently, how vega changes when the stock price moves). This mostly matters to professional traders juggling large, complex portfolios rather than someone holding a single option.",
+    formula: { main: ["\\text{Vanna} = -\\dfrac{e^{-qT}\\,\\varphi(d_1)\\,d_2}{\\sigma}"],
+      where: D1D2_WHERE, legend: [...CORE_LEGEND, PHI_LEGEND] } },
+  { term: "Vomma", def: "∂Vega/∂Volatility — \"vol convexity\": how vega itself changes as vol changes. Also not a real Greek letter.",
+    note: "Another second-order Greek: how vega itself changes as volatility changes. If you're long vega and vomma is high, a big spike in volatility helps you even more than plain vega alone would suggest.",
+    formula: { main: ["\\text{Vomma} = V \\cdot \\dfrac{d_1 d_2}{\\sigma}"],
+      where: [...D1D2_WHERE, "V = S\\,e^{-qT}\\,\\varphi(d_1)\\,\\sqrt{T} \\quad (\\text{vega, defined above})"],
+      legend: [...CORE_LEGEND, PHI_LEGEND] } },
+  { term: "Black-Scholes model", def: "The closed-form option pricing formula derived by assuming the stock follows GBM under the risk-neutral measure. See black_scholes.py.",
+    note: "A famous 1973 formula that takes a few inputs — stock price, strike, time, rate, volatility — and spits out a fair option price directly, no simulation needed. It's the finance equivalent of a plug-and-solve equation, as opposed to something you'd have to work out by trial and error.",
+    formula: {
+      main: [
+        "C = S e^{-qT} N(d_1) \\;-\\; K e^{-rT} N(d_2)",
+        "P = K e^{-rT} N(-d_2) \\;-\\; S e^{-qT} N(-d_1)",
+      ],
+      where: [
+        "d_1 = \\dfrac{\\ln\\!\\left(\\dfrac{S}{K}\\right) + \\left(r - q + \\dfrac{1}{2}\\sigma^2\\right)T}{\\sigma\\sqrt{T}}",
+        "d_2 = d_1 - \\sigma\\sqrt{T}",
+      ],
+      legend: [
+        { sym: "C, P", meaning: "call / put price (what's being solved for)" },
+        { sym: "S", meaning: "spot — current stock price" },
+        { sym: "K", meaning: "strike price" },
+        { sym: "T", meaning: "time to expiry, in years" },
+        { sym: "r", meaning: "risk-free rate" },
+        { sym: "q", meaning: "dividend yield" },
+        { sym: "σ", meaning: "volatility" },
+        { sym: "N(·)", meaning: "standard normal CDF — think \"probability, roughly\"" },
+      ],
+    } },
+  { term: "GBM", def: "Geometric Brownian Motion — the stochastic process this whole repo assumes stocks follow: dS = (r−q)S dt + σS dW. Has a closed-form solution, which is what makes Black-Scholes solvable analytically.",
+    note: "The math model this dashboard assumes stock prices follow: a steady drift up or down, plus continuous random jitter, where the size of the jitter scales with the current price. It's why prices are modeled as never going negative and tend to move in percentage terms rather than flat dollar amounts.",
+    formula: { main: ["dS_t = (r-q)S_t\\,dt + \\sigma S_t\\,dW_t"],
+      where: ["S_T = S_0 \\exp\\!\\Big[\\big(r-q-\\tfrac{1}{2}\\sigma^2\\big)T + \\sigma\\sqrt{T}\\,Z\\Big], \\quad Z\\sim N(0,1)"],
+      legend: [
+        { sym: "S<sub>0</sub>", meaning: "stock price today" }, { sym: "dW<sub>t</sub>", meaning: "increment of Brownian motion — the randomness" },
+        { sym: "Z", meaning: "a standard normal random draw" }, { sym: "r, q, σ, T", meaning: "same as elsewhere: rate, dividend yield, vol, time" },
+      ] } },
+  { term: "Risk-neutral pricing", def: "Pricing as if every asset drifted at the risk-free rate, regardless of real-world risk appetite. Mathematically equivalent to a no-arbitrage replication argument — real-world expected returns cancel out and never need to be estimated.",
+    note: "A clever shortcut: instead of figuring out how much investors actually fear risk (nobody agrees on that number), just pretend everyone's indifferent to risk and price things as if every asset grows at the safe risk-free rate. It sounds like cheating, but it gives exactly the same answer as the much harder \"real world\" calculation, thanks to a hedging argument.",
+    formula: { main: ["V_0 = e^{-rT}\\,\\mathbb{E}^{\\mathbb{Q}}\\big[\\text{Payoff}(S_T)\\big]"],
+      legend: [
+        { sym: "V<sub>0</sub>", meaning: "fair price today" },
+        { sym: "𝔼<sup>ℚ</sup>[·]", meaning: "expected value under the risk-neutral measure ℚ" },
+        { sym: "e<sup>-rT</sup>", meaning: "discount factor back to today" },
+      ] } },
+  { term: "No-arbitrage", def: "The principle that two portfolios with identical future payoffs must have identical prices today, or someone could make riskless profit. The bedrock every pricing formula here rests on.",
+    note: "If two things are guaranteed to pay off exactly the same in the future, they have to cost the same today — otherwise someone could buy the cheap one, sell the expensive one, and pocket a risk-free profit. Traders would jump on that instantly, so real markets don't let it linger. Every formula in this repo assumes it can't happen.",
+    formula: { main: ["C - P = S e^{-qT} - K e^{-rT}"],
+      legend: [
+        { sym: "C, P", meaning: "call / put price" }, { sym: "S", meaning: "spot price" }, { sym: "K", meaning: "strike price" },
+        { sym: "T, r, q", meaning: "time to expiry, risk-free rate, dividend yield" },
+      ] } },
+  { term: "Hedge / hedge ratio", def: "A position taken to offset risk in another. For options, delta is the hedge ratio: holding delta shares of stock against one short option neutralizes small stock moves.",
+    note: "A hedge is a position you take specifically to cancel out risk from another position, not to make money on its own. If you've sold an option, holding the right number of shares (the hedge ratio — which is delta) offsets small stock moves so your combined position barely reacts to the stock's price." },
+  { term: "Delta-hedging", def: "Continuously (or discretely) rebalancing a stock position to keep it matched to an option's delta, neutralizing small directional moves. Project 5's subject — where realized P&L reveals gamma risk and the realized-vs-implied vol gap.",
+    note: "Repeatedly buying or selling stock to keep your hedge matched to the option's current delta, since delta itself keeps changing as the stock moves (that's gamma). Do this perfectly and continuously, and in theory you end up insulated from which way the stock goes — Project 5 in this repo simulates exactly that." },
+  { term: "Newton-Raphson", def: "A fast root-finding method that uses a function's derivative as a local slope estimate to jump toward the root. implied_vol.py uses vega as that slope to solve for implied vol.",
+    note: "A fast way to answer \"what input gives me this output\" when you can't just invert the formula directly. Take a guess, check how wrong you are, use the local slope to jump toward a better guess, repeat. Usually nails the answer in just a handful of steps.",
+    formula: { main: ["\\sigma_{n+1} = \\sigma_n - \\dfrac{C_{BS}(\\sigma_n) - C_{\\text{market}}}{V(\\sigma_n)}"],
+      legend: [
+        { sym: "σ<sub>n</sub>", meaning: "the current guess for implied vol" },
+        { sym: "C<sub>BS</sub>(σ<sub>n</sub>)", meaning: "Black-Scholes price using that guess" },
+        { sym: "V(σ<sub>n</sub>)", meaning: "vega at that guess — the local slope" },
+      ] } },
+  { term: "Bisection method", def: "A slower but unconditionally convergent root-finding method: repeatedly halve a bracket known to contain the root. Used as implied_vol.py's fallback when Newton's slope (vega) is too flat to trust.",
+    note: "A slower but foolproof way to find where a function crosses zero: keep cutting a range in half, always keeping the half that must still contain the answer. Much slower than Newton-Raphson, but it can't fail the way Newton's method can when the slope misbehaves.",
+    formula: { main: ["\\text{mid} = \\dfrac{\\text{lo} + \\text{hi}}{2}"],
+      legend: [{ sym: "lo, hi", meaning: "the current bracket known to contain the root" }] } },
+  { term: "Monte Carlo simulation", def: "Estimating an expected value by averaging many random simulations, instead of solving for it analytically. monte_carlo.py uses it to price options by simulating and averaging discounted payoffs.",
+    note: "Instead of solving a problem exactly with a formula, just simulate the situation thousands of times with randomness and average the results. Named after the casino, since it leans on randomness the same way roulette does. Run more simulations, and the average gets closer to the true answer.",
+    formula: { main: ["\\hat{V} = \\dfrac{1}{N}\\sum_{i=1}^{N} e^{-rT}\\,\\text{Payoff}\\big(S_T^{(i)}\\big)"],
+      legend: [
+        { sym: "V̂", meaning: "the Monte Carlo price estimate" },
+        { sym: "N", meaning: "number of simulated paths" },
+        { sym: "S<sub>T</sub><sup>(i)</sup>", meaning: "the i-th simulated terminal stock price" },
+      ] } },
+  { term: "Antithetic variates", def: "A variance-reduction trick: pair each random draw Z with its mirror −Z. Free (no extra random numbers) and cuts a Monte Carlo estimate's standard error since the payoff is roughly monotonic in Z.",
+    note: "A free trick to make Monte Carlo simulations more accurate without extra work: for every random simulation you run, also run its exact mirror image (flip the sign of the randomness). The errors in the pair tend to cancel out a bit, so you get a more accurate average for the same amount of computing." },
+  { term: "Standard error", def: "How much a Monte Carlo estimate is expected to vary from the true value — std(sample) / √n. Shrinks like 1/√n as the number of simulated paths grows. A Monte Carlo price without this is unfalsifiable.",
+    note: "A measure of how much to trust an estimate that came from randomness. If you reran the same simulation with different random numbers, the standard error tells you roughly how much the answer would wobble. Smaller standard error means more confidence in the number.",
+    formula: { main: ["\\text{SE} = \\dfrac{s}{\\sqrt{N}}"],
+      legend: [
+        { sym: "s", meaning: "sample std dev of the simulated discounted payoffs" },
+        { sym: "N", meaning: "number of simulated paths" },
+      ] } },
+  { term: "Confidence interval", sym: "CI", def: "A range likely to contain the true value — here, price ± 1.96 × standard error for a 95% CI. Watch it tighten around the closed-form price as path count increases.",
+    note: "A range built around an estimate that says \"the true answer is probably somewhere in here.\" A 95% confidence interval means: if you repeated the whole process many times, about 95 out of 100 of those ranges would actually contain the true answer.",
+    formula: { main: ["\\text{95\\% CI} = \\hat{V} \\pm 1.96 \\times \\text{SE}"],
+      legend: [
+        { sym: "V̂", meaning: "the price estimate" }, { sym: "SE", meaning: "standard error" },
+        { sym: "1.96", meaning: "z-score for a 95% interval, under a normal approximation" },
+      ] } },
+  { term: "Seed", def: "A number that fully determines a pseudo-random generator's output sequence. Same seed → same simulated paths → same price, which is what makes Monte Carlo results in this dashboard reproducible.",
+    note: "A starting number that fully determines every \"random\" number a computer generates afterward. Computers can't actually produce true randomness — they follow a formula that looks random but is completely predictable once you know the seed. Reuse the same seed and you get the exact same sequence again, which is what makes an experiment repeatable." },
+  { term: "Vol smile / vol surface", def: "The pattern of implied vol across strikes (smile) or across strikes and maturities (surface). Real markets don't have flat implied vol across strikes — Black-Scholes assumes constant σ, so the smile is direct evidence that assumption is an approximation. Project 4's subject.",
+    note: "If Black-Scholes were perfectly true, every option on the same stock would imply the same volatility no matter the strike. In real markets they don't — implied vol usually curves upward for strikes far from the current price, making a \"smile\" shape when plotted. It's the market quietly telling you that constant volatility isn't quite realistic." },
+  { term: "Bid/ask spread", def: "The gap between the highest price a buyer will pay (bid) and the lowest a seller will accept (ask) for an option. A data-hygiene headache for Project 4 — which price do you treat as \"the\" market price?",
+    note: "The \"buy\" price is always a little higher than the \"sell\" price for the same option at the same moment — that gap is how market makers get paid for being willing to trade with anyone, anytime. For rarely-traded options, this gap can be wide, which makes it genuinely unclear what the option's \"real\" price even is." },
+];
+
+function renderTeX(latex) {
+  if (typeof katex === "undefined") return `<code>${latex}</code>`;
+  try {
+    return katex.renderToString(latex, { throwOnError: false, displayMode: true });
+  } catch (e) {
+    return `<code>${latex}</code>`;
+  }
+}
+function formulaBlock(formula) {
+  if (!formula) return "";
+  const main = formula.main.map(renderTeX).join("");
+  const where = formula.where
+    ? `<div class="formula-where">where</div>${formula.where.map(renderTeX).join("")}`
+    : "";
+  const legend = formula.legend
+    ? `<div class="formula-legend">${formula.legend.map(l =>
+        `<span><span class="k">${l.sym}</span> = ${l.meaning}</span>`).join("")}</div>`
+    : "";
+  return `<div class="glossary-formula">${main}${where}${legend}</div>`;
+}
+
+function renderGlossary(filter) {
+  filter = (filter || "").toLowerCase().trim();
+  const list = document.getElementById("glossary_list");
+  const countEl = document.getElementById("glossary_count");
+  const emptyEl = document.getElementById("glossary_empty");
+  const matches = GLOSSARY.filter(g =>
+    !filter || g.term.toLowerCase().includes(filter) || g.def.toLowerCase().includes(filter) || g.note.toLowerCase().includes(filter)
+  );
+  list.innerHTML = matches.map(g => `
+    <div class="glossary-entry" tabindex="0" role="button" aria-expanded="false">
+      <dt>${g.term}${g.sym ? ` <span class="sym">(${g.sym})</span>` : ""}<span class="chevron">▸</span></dt>
+      <dd>${g.def}</dd>
+      <div class="glossary-note">${g.note}${formulaBlock(g.formula)}</div>
+    </div>
+  `).join("");
+  countEl.textContent = `${matches.length} of ${GLOSSARY.length} terms — click a card for a plain-English explanation`;
+  emptyEl.hidden = matches.length !== 0;
+}
+
+function toggleGlossaryEntry(entry) {
+  const note = entry.querySelector(".glossary-note");
+  const expanding = !entry.classList.contains("expanded");
+  entry.classList.toggle("expanded", expanding);
+  entry.setAttribute("aria-expanded", expanding ? "true" : "false");
+  if (expanding) {
+    note.style.maxHeight = note.scrollHeight + "px";
+    // KaTeX's web fonts can finish loading a beat after this, changing scrollHeight
+    // slightly — once the open transition finishes, drop the cap so it can't clip.
+    note.addEventListener("transitionend", function onEnd(e) {
+      if (e.propertyName === "max-height" && entry.classList.contains("expanded")) note.style.maxHeight = "none";
+      note.removeEventListener("transitionend", onEnd);
+    });
+  } else {
+    note.style.maxHeight = note.scrollHeight + "px"; // concrete px value in case it was "none"
+    requestAnimationFrame(() => { note.style.maxHeight = "0"; });
+  }
+}
+
+document.getElementById("glossary_search").addEventListener("input", e => renderGlossary(e.target.value));
+document.getElementById("glossary_list").addEventListener("click", e => {
+  const entry = e.target.closest(".glossary-entry");
+  if (entry) toggleGlossaryEntry(entry);
+});
+document.getElementById("glossary_list").addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const entry = e.target.closest(".glossary-entry");
+  if (entry) { e.preventDefault(); toggleGlossaryEntry(entry); }
+});
+renderGlossary("");
+
+// each topic-intro shows its page's one anchor formula, pulled from the same
+// GLOSSARY data (and same renderer) the Glossary tab uses — one source of truth.
+function getFormula(term) {
+  const g = GLOSSARY.find(x => x.term === term);
+  return g && g.formula;
+}
+document.getElementById("bs_topic_formula").innerHTML = formulaBlock(getFormula("Black-Scholes model"));
+document.getElementById("iv_topic_formula").innerHTML = formulaBlock(getFormula("Implied volatility"));
+document.getElementById("mc_topic_formula").innerHTML = formulaBlock(getFormula("Monte Carlo simulation"));
+
+/* ---------------- tabs ---------------- */
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    if (btn.dataset.tab === "bs") drawBS();
+    if (btn.dataset.tab === "iv") solveIV();
+    if (btn.dataset.tab === "mc") runMC();
+  });
+});
+
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const active = document.querySelector(".tab-btn.active").dataset.tab;
+    if (active === "bs") drawBS();
+    if (active === "iv") solveIV();
+    if (active === "mc") runMC();
+  }, 150);
+});
+
+// initial render
+drawBS();
+solveIV();
+runMC();
+</script>
+</body>
+</html>
