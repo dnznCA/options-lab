@@ -2321,6 +2321,7 @@ function toggleGlossaryEntry(entry) {
 
 document.getElementById("glossary_search").addEventListener("input", e => renderGlossary(e.target.value));
 document.getElementById("glossary_list").addEventListener("click", e => {
+  if (window.getSelection().toString().length > 0) return; // don't collapse a card out from under a text selection
   const entry = e.target.closest(".glossary-entry");
   if (entry) toggleGlossaryEntry(entry);
 });
