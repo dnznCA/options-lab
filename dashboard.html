@@ -1192,7 +1192,28 @@ const Plot = (function () {
     return (+x.toFixed(4)).toString();
   }
 
-  const M = { left: 46, right: 12, top: 10, bottom: 22 };
+  // module-scoped margins, deliberately mutable: line()/hist() resize this at the
+  // start of each call (to make room for axis-label text when requested) before
+  // any of the many M.left/M.right/etc reads below happen — same-thread, synchronous,
+  // so this is safe without threading a margins param through every call site
+  let M = { left: 46, right: 12, top: 10, bottom: 22 };
+
+  function drawAxisLabels(ctx, opts, w, h, text) {
+    if (opts.xLabel) {
+      ctx.fillStyle = text; ctx.font = "10.5px sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+      ctx.fillText(opts.xLabel, M.left + (w - M.left - M.right) / 2, h - 2);
+    }
+    if (opts.yLabel) {
+      ctx.save();
+      ctx.translate(11, M.top + (h - M.top - M.bottom) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillStyle = text; ctx.font = "10.5px sans-serif";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(opts.yLabel, 0, 0);
+      ctx.restore();
+    }
+  }
 
   function xOf(x, dom, w, log) {
     const pw = w - M.left - M.right;
@@ -1208,6 +1229,10 @@ const Plot = (function () {
     const { ctx, w, h } = setupHiDPI(canvas);
     const text = cssVar("--text-muted"), grid = cssVar("--grid"), textStrong = cssVar("--text");
     const xLog = !!opts.xLog;
+    M = {
+      left: 46 + (opts.yLabel ? 13 : 0), right: 12, top: 10,
+      bottom: 22 + (opts.xLabel ? 14 : 0),
+    };
 
     let allX = [], allY = [];
     (opts.series || []).forEach(s => s.points.forEach(p => { allX.push(p[0]); allY.push(p[1]); }));
@@ -1303,6 +1328,9 @@ const Plot = (function () {
       }
     });
 
+    // axis titles — separate from the tick numbers, says what's actually being measured
+    drawAxisLabels(ctx, opts, w, h, text);
+
     // legend
     const labeled = (opts.series || []).filter(s => s.label);
     if (labeled.length) {
@@ -1336,6 +1364,10 @@ const Plot = (function () {
     opts = opts || {};
     const { ctx, w, h } = setupHiDPI(canvas);
     const text = cssVar("--text-muted"), textStrong = cssVar("--text");
+    M = {
+      left: 46 + (opts.yLabel ? 13 : 0), right: 12, top: 10,
+      bottom: 22 + (opts.xLabel ? 14 : 0),
+    };
     if (!data.length) return;
     const min = Math.min(...data), max = Math.max(...data);
     const bins = opts.bins || 40;
@@ -1385,6 +1417,7 @@ const Plot = (function () {
         ctx.beginPath(); ctx.moveTo(x, M.top); ctx.lineTo(x, h - M.bottom); ctx.stroke();
         ctx.setLineDash([]);
       }
+      drawAxisLabels(ctx, opts, w, h, text);
       return;
     }
 
@@ -1423,6 +1456,7 @@ const Plot = (function () {
       ctx.beginPath(); ctx.moveTo(M.left, y); ctx.lineTo(w - M.right, y); ctx.stroke();
       ctx.setLineDash([]);
     }
+    drawAxisLabels(ctx, opts, w, h, text);
   }
 
   return { line, hist, setupHiDPI, niceDomain };
@@ -1559,13 +1593,14 @@ function drawBS() {
       { points: tangent, color: getCssColor("--c2"), width: 2, dashed: true, label: "tangent (delta)" },
     ],
     vLine: S,
+    xLabel: "spot price ($)", yLabel: "option price ($)",
   });
 
   function greekChart(id, callFn, putFn, split) {
     const callPts2 = xs.map(x => [x, callFn(x)]);
     const series = [{ points: callPts2, color: getCssColor("--c0") }];
     if (split) series.push({ points: xs.map(x => [x, putFn(x)]), color: getCssColor("--c1") });
-    Plot.line(document.getElementById(id), { series, vLine: S });
+    Plot.line(document.getElementById(id), { series, vLine: S, xLabel: "spot price ($)" });
   }
   greekChart("g_delta", x => bsDelta(x, K, T, r, sigma, "call", q), x => bsDelta(x, K, T, r, sigma, "put", q), true);
   greekChart("g_gamma", x => bsGamma(x, K, T, r, sigma, q));
@@ -1631,6 +1666,7 @@ function solveIV() {
       { points: bisectPts, color: getCssColor("--c3"), label: "bisection", dots: true },
     ].filter(s => s.points.length),
     hLines,
+    xLabel: "iteration", yLabel: "σ guess",
   });
 
   const tbody = document.querySelector("#iv_traceTable tbody");
@@ -1700,11 +1736,11 @@ function runMC() {
     return { points: Array.from(tGrid).map((t, i) => [t, p[i]]), color: itm ? getCssColor("--c0") : getCssColor("--c1"), width: 1 };
   });
   series.push({ points: [[0, K], [T, K]], color: getCssColor("--text-muted"), width: 1, dashed: true, label: `K=${K.toFixed(0)}` });
-  Plot.line(document.getElementById("mc_pathsChart"), { series });
+  Plot.line(document.getElementById("mc_pathsChart"), { series, xLabel: "time (years)", yLabel: "spot price ($)" });
 
   // terminal distribution
   const bigST = simulateTerminalSpot(S, T, r, sigma, q, 8000, antithetic, seed);
-  Plot.hist(document.getElementById("mc_histChart"), Array.from(bigST), { bins: 60, hLine: K, color: getCssColor("--c0") });
+  Plot.hist(document.getElementById("mc_histChart"), Array.from(bigST), { bins: 60, hLine: K, color: getCssColor("--c0"), xLabel: "count", yLabel: "terminal spot ($)" });
 
   // convergence sweep
   const counts = [];
@@ -1725,6 +1761,7 @@ function runMC() {
     band: bandPts,
     bandColor: hexToRgba(getCssColor("--c0"), 0.15),
     hLines: [{ y: bs, color: getCssColor("--text"), label: `Black-Scholes = ${bs.toFixed(4)}` }],
+    xLabel: "number of simulated paths (log)", yLabel: "option price ($)",
   });
 }
 
@@ -1800,7 +1837,7 @@ function drawVol() {
     };
   });
 
-  Plot.line(document.getElementById("vol_smileChart"), { series, vLine: 1.0 });
+  Plot.line(document.getElementById("vol_smileChart"), { series, vLine: 1.0, xLabel: "moneyness (K / S)", yLabel: "implied volatility" });
 }
 
 /* ---------------- TAB 5: Delta Hedging ---------------- */
@@ -1925,11 +1962,11 @@ function runHedge() {
   const spotSeries = { points: Array.from(single.tGrid).map((t, i) => [t, single.S[i]]), color: getCssColor("--c0") };
   const deltaSeries = { points: Array.from(single.tGrid).map((t, i) => [t, single.delta[i]]), color: getCssColor("--c2") };
   const pnlPath = Array.from(single.tGrid).map((t, i) => [t, single.portfolio[i] - single.premium]);
-  Plot.line(document.getElementById("hedge_pathSpot"), { series: [spotSeries], hLines: [{ y: K, label: `K=${K.toFixed(0)}` }] });
-  Plot.line(document.getElementById("hedge_pathDelta"), { series: [deltaSeries] });
-  Plot.line(document.getElementById("hedge_pathPnl"), { series: [{ points: pnlPath, color: getCssColor("--c3") }], hLines: [{ y: 0 }] });
+  Plot.line(document.getElementById("hedge_pathSpot"), { series: [spotSeries], hLines: [{ y: K, label: `K=${K.toFixed(0)}` }], xLabel: "time (years)", yLabel: "spot ($)" });
+  Plot.line(document.getElementById("hedge_pathDelta"), { series: [deltaSeries], xLabel: "time (years)", yLabel: "delta (Δ)" });
+  Plot.line(document.getElementById("hedge_pathPnl"), { series: [{ points: pnlPath, color: getCssColor("--c3") }], hLines: [{ y: 0 }], xLabel: "time (years)", yLabel: "cumulative P&L ($)" });
 
-  Plot.hist(document.getElementById("hedge_distChart"), Array.from(pnl), { bins: 60, hLine: 0, color: getCssColor("--c0"), vertical: true });
+  Plot.hist(document.getElementById("hedge_distChart"), Array.from(pnl), { bins: 60, hLine: 0, color: getCssColor("--c0"), vertical: true, xLabel: "hedge P&L ($)", yLabel: "count" });
 
   const freqSteps = [12, 26, 52, 104, 252, 504, 1008];
   const freqPaths = Math.min(nPaths, 2000);
@@ -1943,6 +1980,7 @@ function runHedge() {
     xLog: true,
     series: [{ points: freqPoints, color: getCssColor("--c3"), label: "mean P&L" }],
     band: freqBand, bandColor: hexToRgba(getCssColor("--c0"), 0.15),
+    xLabel: "rebalances per year (log)", yLabel: "hedge P&L ($)",
   });
 }
 
