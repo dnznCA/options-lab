@@ -2080,7 +2080,10 @@ const GLOSSARY = [
     note: "The return you could get with basically zero risk, like a short-term government bond. It matters here because a dollar today is worth more than a dollar later — this rate is used to translate a future payoff back into today's money." },
   { term: "Present value", sym: "PV", def: "What a future cash flow (or stream of them) is worth today, after each one is shrunk by the discount rate. The one question Cash flow, Discount rate, and Growth rate all exist to help answer.",
     note: "Add up every future cash flow, each divided by (1+r) raised to how far away it is, and the total is the present value — the fair price to pay today for that whole stream. Every valuation formula in this glossary is really just a shortcut for this sum in some special case.<br><br>Say $1,000 is coming in 3 years, discounted at 8%: PV = 1000/(1.08)³ ≈ $793.83 — one cash flow, one term. Now suppose a second payment, $500 in 1 year, gets added to the deal: PV = 500/(1.08)¹ + 1000/(1.08)³ ≈ $462.96 + $793.83 = $1,256.79 — just another term in the same sum, discounted by its own number of years.<br><br>An option is the simplest case of all: exactly one future cash flow, the payoff at expiry, so its present value is a single term — that's exactly risk-neutral pricing's V₀ = e^{-rT}𝔼^ℚ[Payoff(S_T)]. A growing perpetuity is the opposite extreme: infinitely many cash flows stretching forever, which is why Growth rate's PV = C₁/(r−g) needs to sum an infinite series to collapse into one clean line.",
-    formula: { main: ["PV = \\sum_{t=1}^{n} \\dfrac{C_t}{(1+r)^t}"],
+    formula: { main: [
+        "PV_t = \\dfrac{C_t}{(1+r)^t}",
+        "PV = \\sum_{t=1}^{n} PV_t \\;=\\; \\sum_{t=1}^{n} \\dfrac{C_t}{(1+r)^t}",
+      ],
       legend: [
         { sym: "C<sub>t</sub>", meaning: "the cash flow received at time t" },
         { sym: "r", meaning: "discount rate" },
