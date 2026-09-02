@@ -2101,10 +2101,7 @@ const GLOSSARY = [
     note: "Used for valuing something that pays out repeatedly and is expected to grow, like a company's dividends — not something an option ever needs, since it pays off exactly once. The classic growing perpetuity formula, PV = C₁/(r−g), hides a detail worth spelling out by hand: the discount rate applies to the very first payment, but the growth rate doesn't.<br><br>Say a stock is about to pay its first dividend of $5 next year, growing 4% a year after that forever, discounted at 9%:<br>• Year 1: $5 discounted one year — 5/(1.09)¹ ≈ $4.59. No growth yet; this $5 is the baseline everything else grows from.<br>• Year 2: $5 grown once, discounted twice — 5×1.04/(1.09)² ≈ $4.38.<br>• Year 3: $5 grown twice, discounted three times — 5×1.04²/(1.09)³ ≈ $4.18.<br><br>Discounting starts immediately, since even the first payment is only one period away. Growth starts one payment later, because that first payment is the base the later ones grow from — it can't grow relative to itself. Add up the whole infinite series and it collapses to the tidy PV = 5/(0.09−0.04) = $100, but that clean formula is quietly doing what those first few terms spell out one at a time.",
     formula: { main: [
         "PV_n = C_1 \\times \\dfrac{(1+g)^{n-1}}{(1+r)^n}",
-        "\\text{Value} = \\dfrac{C_1}{1+r} + \\dfrac{C_1(1+g)}{(1+r)^2} + \\dfrac{C_1(1+g)^2}{(1+r)^3} + \\cdots",
-        "\\text{Value} = \\sum_{n=1}^{\\infty} PV_n",
-        "\\text{Value} = \\sum_{n=1}^{\\infty} C_1 \\times \\dfrac{(1+g)^{n-1}}{(1+r)^n}",
-        "\\text{Value} = \\dfrac{C_1}{r-g}",
+        "\\begin{aligned} \\text{Value} &= \\dfrac{C_1}{1+r} + \\dfrac{C_1(1+g)}{(1+r)^2} + \\dfrac{C_1(1+g)^2}{(1+r)^3} + \\cdots \\\\ &= \\sum_{n=1}^{\\infty} PV_n \\\\ &= \\sum_{n=1}^{\\infty} C_1 \\times \\dfrac{(1+g)^{n-1}}{(1+r)^n} \\\\ &= \\dfrac{C_1}{r-g} \\end{aligned}",
       ],
       legend: [
         { sym: "C<sub>1</sub>", meaning: "the year-1 cash flow — the base payment, with zero growth applied to itself" },
@@ -2116,10 +2113,7 @@ const GLOSSARY = [
     note: "Everything on this card already appears on Growth rate's — this is just the same four formulas gathered in one place, without the surrounding explanation, for whenever you want the equations without re-reading the walkthrough. See Growth rate for the worked example and for why the discount rate and growth rate don't apply symmetrically to that first payment.",
     formula: { main: [
         "PV_n = C_1 \\times \\dfrac{(1+g)^{n-1}}{(1+r)^n}",
-        "\\text{Value} = \\dfrac{C_1}{1+r} + \\dfrac{C_1(1+g)}{(1+r)^2} + \\dfrac{C_1(1+g)^2}{(1+r)^3} + \\cdots",
-        "\\text{Value} = \\sum_{n=1}^{\\infty} PV_n",
-        "\\text{Value} = \\sum_{n=1}^{\\infty} C_1 \\times \\dfrac{(1+g)^{n-1}}{(1+r)^n}",
-        "\\text{Value} = \\dfrac{C_1}{r-g}",
+        "\\begin{aligned} \\text{Value} &= \\dfrac{C_1}{1+r} + \\dfrac{C_1(1+g)}{(1+r)^2} + \\dfrac{C_1(1+g)^2}{(1+r)^3} + \\cdots \\\\ &= \\sum_{n=1}^{\\infty} PV_n \\\\ &= \\sum_{n=1}^{\\infty} C_1 \\times \\dfrac{(1+g)^{n-1}}{(1+r)^n} \\\\ &= \\dfrac{C_1}{r-g} \\end{aligned}",
       ],
       legend: [
         { sym: "C<sub>1</sub>", meaning: "the year-1 cash flow — the base payment, with zero growth applied to itself" },
