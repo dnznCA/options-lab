@@ -537,8 +537,8 @@
         </div>
         <button class="secondary" id="iv_generate_btn">Fill market price from this σ</button>
         <p class="hint">Prices the option with the true σ above via <code>bs_price</code>, then drops that
-          number into the market price field — a way to check the solver against a known answer, same idea
-          as <code>implied_vol.py</code>'s self-test.</p>
+          number into the market price field — a way to check the solver against a known answer instead of
+          a real market quote.</p>
       </aside>
 
       <div>
@@ -634,8 +634,8 @@
             <input type="range" id="mc_nPathsSlider" min="0" max="100" step="1" value="60">
             <input type="number" id="mc_nPaths_num" min="1000" max="200000" step="1000" value="50000">
           </div>
-          <p class="hint">Capped at 200,000 for browser responsiveness — <code>monte_carlo.py</code> runs
-             into the millions.</p>
+          <p class="hint">Capped at 200,000 for browser responsiveness — a server-side implementation
+             wouldn't need this limit and could run into the millions.</p>
         </div>
         <div class="field">
           <label>Seed</label>
@@ -676,7 +676,7 @@
       <h2>Volatility smile / surface</h2>
       <p>Every other tab runs on hand-picked numbers. This one runs
         <span class="term-tip" tabindex="0" data-term="Implied volatility">Implied Volatility</span>'s solver across a real option
-        chain: a snapshot of every AAPL quote <code>vol_surface.py</code> pulled from Yahoo Finance, embedded here since a static
+        chain: a snapshot of every AAPL quote pulled from Yahoo Finance, embedded here since a static
         page can't call a live API. If <span class="term-tip" tabindex="0" data-term="Black-Scholes model">Black-Scholes</span>'s
         constant-σ assumption were exactly right, every strike would imply the same
         <span class="term-tip" tabindex="0" data-term="Volatility">volatility</span> — it doesn't.</p>
@@ -713,8 +713,7 @@
         </div>
         <p class="hint">Snapshot: <strong id="vol_ticker"></strong>, captured <strong id="vol_captureDate"></strong>
           — spot=<strong id="vol_spotLabel"></strong>. Not live — these sliders replay the same raw quotes
-          <code>vol_surface.py</code> pulled that day; only the OTM side of each strike (the liquid side) is
-          kept before any filtering runs, same as the Python version.</p>
+          pulled that day; only the OTM side of each strike (the liquid side) is kept before any filtering runs.</p>
       </aside>
 
       <div>
@@ -1984,7 +1983,7 @@ const GLOSSARY = [
     note: "Just the price you'd pay to buy the stock right now, with no option involved. Everything in this dashboard is really about comparing this live, moving number against the fixed strike price." },
   { term: "Expiry / Maturity", sym: "T", def: "Time remaining until the option expires, measured in years (0.5 = 6 months) throughout this repo.",
     note: "The deadline. After this date, the contract is worthless no matter what happens — it's use-it-or-lose-it. This dashboard measures it in years, so 3 months is entered as 0.25 and 1 week is about 0.02." },
-  { term: "Premium", def: "The price paid to buy an option — what black_scholes.py's bs_price() or monte_carlo.py's mc_price() compute.",
+  { term: "Premium", def: "The price paid to buy an option — what the Black-Scholes & Greeks and Monte Carlo tabs both compute.",
     note: "The sticker price you actually pay upfront to own the option. This is the number every pricing formula in this dashboard is solving for. Once paid, it's gone — the maximum you can lose on the trade, however badly it goes." },
   { term: "ITM / ATM / OTM", def: "In/at/out-of-the-money — whether the strike is favorable, right at, or unfavorable relative to the current spot.",
     note: "A snapshot of whether the option would be worth exercising right this second. ITM (in-the-money) means yes, it'd pay off now. OTM (out-of-the-money) means it'd be worthless if exercised today. ATM (at-the-money) is the borderline, where spot and strike are about equal." },
@@ -2030,7 +2029,7 @@ const GLOSSARY = [
     note: "Every option has exactly one buyer and one seller. If you're short a call, your counterparty is whoever might exercise it against you at expiry — someone is always on the other side of every Greek you're carrying." },
   { term: "Volatility", sym: "σ", def: "Annualized standard deviation of the stock's returns. The one input nobody can observe directly — either estimated from history (realized vol) or backed out from prices (implied vol).",
     note: "How jumpy a stock is. A boring utility stock that barely moves has low volatility; a hyped-up stock that can double or halve on news has high volatility. It's usually quoted as a percentage per year — 20% roughly means the stock's return tends to swing within about ±20% over a year." },
-  { term: "Implied volatility", def: "The σ that, fed back into the pricing model, reproduces an observed market price exactly. The market's own forward-looking forecast, extracted from what people actually pay. See implied_vol.py.",
+  { term: "Implied volatility", def: "The σ that, fed back into the pricing model, reproduces an observed market price exactly. The market's own forward-looking forecast, extracted from what people actually pay. See the Implied Volatility tab.",
     note: "Instead of guessing volatility yourself, you work backwards from what people are actually paying for an option and figure out what volatility assumption would justify that price. It's basically the market's crowd-sourced guess at how wild the stock will be between now and expiry.",
     formula: { main: ["\\text{Find } \\sigma \\text{ such that } C_{BS}(S,K,T,r,\\sigma,q) = C_{\\text{market}}"],
       legend: [{ sym: "C<sub>BS</sub>(…)", meaning: "the Black-Scholes price, as a function of σ" }, { sym: "C<sub>market</sub>", meaning: "the option's observed market price" }] } },
@@ -2074,7 +2073,7 @@ const GLOSSARY = [
     formula: { main: ["\\text{Vomma} = V \\cdot \\dfrac{d_1 d_2}{\\sigma}"],
       where: [...D1D2_WHERE, "V = S\\,e^{-qT}\\,\\varphi(d_1)\\,\\sqrt{T} \\quad (\\text{vega, defined above})"],
       legend: [...CORE_LEGEND, PHI_LEGEND] } },
-  { term: "Black-Scholes model", def: "The closed-form option pricing formula derived by assuming the stock follows GBM under the risk-neutral measure. See black_scholes.py.",
+  { term: "Black-Scholes model", def: "The closed-form option pricing formula derived by assuming the stock follows GBM under the risk-neutral measure. See the Black-Scholes & Greeks tab.",
     note: "A famous 1973 formula that takes a few inputs — stock price, strike, time, rate, volatility — and spits out a fair option price directly, no simulation needed. It's the finance equivalent of a plug-and-solve equation, as opposed to something you'd have to work out by trial and error.",
     formula: {
       main: [
@@ -2123,7 +2122,7 @@ const GLOSSARY = [
     note: "A hedge is a position you take specifically to cancel out risk from another position, not to make money on its own. If you've sold an option, holding the right number of shares (the hedge ratio — which is delta) offsets small stock moves so your combined position barely reacts to the stock's price." },
   { term: "Delta-hedging", def: "Continuously (or discretely) rebalancing a stock position to keep it matched to an option's delta, neutralizing small directional moves. Project 5's subject — where realized P&L reveals gamma risk and the realized-vs-implied vol gap.",
     note: "Repeatedly buying or selling stock to keep your hedge matched to the option's current delta, since delta itself keeps changing as the stock moves (that's gamma). Do this perfectly and continuously, and in theory you end up insulated from which way the stock goes — Project 5 in this repo simulates exactly that." },
-  { term: "Newton-Raphson", def: "A fast root-finding method that uses a function's derivative as a local slope estimate to jump toward the root. implied_vol.py uses vega as that slope to solve for implied vol.",
+  { term: "Newton-Raphson", def: "A fast root-finding method that uses a function's derivative as a local slope estimate to jump toward the root. The Implied Volatility tab uses vega as that slope to solve for implied vol.",
     note: "A fast way to answer \"what input gives me this output\" when you can't just invert the formula directly. Take a guess, check how wrong you are, use the local slope to jump toward a better guess, repeat. Usually nails the answer in just a handful of steps.",
     formula: { main: ["\\sigma_{n+1} = \\sigma_n - \\dfrac{C_{BS}(\\sigma_n) - C_{\\text{market}}}{V(\\sigma_n)}"],
       legend: [
@@ -2131,11 +2130,11 @@ const GLOSSARY = [
         { sym: "C<sub>BS</sub>(σ<sub>n</sub>)", meaning: "Black-Scholes price using that guess" },
         { sym: "V(σ<sub>n</sub>)", meaning: "vega at that guess — the local slope" },
       ] } },
-  { term: "Bisection method", def: "A slower but unconditionally convergent root-finding method: repeatedly halve a bracket known to contain the root. Used as implied_vol.py's fallback when Newton's slope (vega) is too flat to trust.",
+  { term: "Bisection method", def: "A slower but unconditionally convergent root-finding method: repeatedly halve a bracket known to contain the root. Used as the Implied Volatility tab's fallback when Newton's slope (vega) is too flat to trust.",
     note: "A slower but foolproof way to find where a function crosses zero: keep cutting a range in half, always keeping the half that must still contain the answer. Much slower than Newton-Raphson, but it can't fail the way Newton's method can when the slope misbehaves.",
     formula: { main: ["\\text{mid} = \\dfrac{\\text{lo} + \\text{hi}}{2}"],
       legend: [{ sym: "lo, hi", meaning: "the current bracket known to contain the root" }] } },
-  { term: "Monte Carlo simulation", def: "Estimating an expected value by averaging many random simulations, instead of solving for it analytically. monte_carlo.py uses it to price options by simulating and averaging discounted payoffs.",
+  { term: "Monte Carlo simulation", def: "Estimating an expected value by averaging many random simulations, instead of solving for it analytically. The Monte Carlo tab uses it to price options by simulating and averaging discounted payoffs.",
     note: "Instead of solving a problem exactly with a formula, just simulate the situation thousands of times with randomness and average the results. Named after the casino, since it leans on randomness the same way roulette does. Run more simulations, and the average gets closer to the true answer.",
     formula: { main: ["\\hat{V} = \\dfrac{1}{N}\\sum_{i=1}^{N} e^{-rT}\\,\\text{Payoff}\\big(S_T^{(i)}\\big)"],
       legend: [
