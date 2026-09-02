@@ -186,6 +186,7 @@
   .chart-card h4 { margin: 0 0 8px; font-size: 13px; }
   .chart-card canvas { width: 100%; height: 260px; display: block; }
   .chart-card canvas.small { height: 150px; }
+  .chart-card canvas.small + canvas.small { margin-top: 10px; }
 
   .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 700px) { .chart-row { grid-template-columns: 1fr; } }
@@ -281,6 +282,8 @@
   <button class="tab-btn active" data-tab="bs">Black-Scholes &amp; Greeks</button>
   <button class="tab-btn" data-tab="iv">Implied Volatility</button>
   <button class="tab-btn" data-tab="mc">Monte Carlo</button>
+  <button class="tab-btn" data-tab="vol">Vol Surface</button>
+  <button class="tab-btn" data-tab="hedge">Delta Hedging</button>
   <button class="tab-btn" data-tab="glossary">Glossary</button>
 </nav>
 
@@ -581,6 +584,172 @@
     </div>
   </section>
 
+  <!-- ======================= TAB 4: VOL SURFACE ======================= -->
+  <section id="tab-vol" class="tab-panel">
+    <div class="topic-intro">
+      <h2>Volatility smile / surface</h2>
+      <p>Every other tab runs on hand-picked numbers. This one runs Implied Volatility's solver across a real
+        option chain: a snapshot of every AAPL quote <code>vol_surface.py</code> pulled from Yahoo Finance,
+        embedded here since a static page can't call a live API. If Black-Scholes's constant-σ assumption
+        were exactly right, every strike would imply the same volatility — it doesn't.</p>
+      <p>The sliders control the data-hygiene filters real quotes need before you can trust them: a spread
+        cap, a moneyness band, a minimum volume. Loosen them and noisy, illiquid quotes creep into the smile;
+        tighten them and the chart gets cleaner but sparser. That tradeoff — not new math — is what Project 4
+        is actually about.</p>
+      <div class="topic-formula" id="vol_topic_formula"></div>
+    </div>
+    <div class="layout">
+      <aside class="panel">
+        <h3>Data hygiene filters</h3>
+        <div class="field">
+          <label>Max relative spread (%)</label>
+          <div class="field-row">
+            <input type="range" id="vol_maxSpread" min="0.05" max="2" step="0.01" value="0.5">
+            <input type="number" id="vol_maxSpread_num" min="5" max="200" step="1" value="50">
+          </div>
+        </div>
+        <div class="field">
+          <label>Moneyness band (± around 1.0)</label>
+          <div class="field-row">
+            <input type="range" id="vol_moneynessBand" min="0.01" max="0.5" step="0.01" value="0.3">
+            <input type="number" id="vol_moneynessBand_num" min="1" max="50" step="1" value="30">
+          </div>
+        </div>
+        <div class="field">
+          <label>Min volume today</label>
+          <div class="field-row">
+            <input type="range" id="vol_minVolume" min="0" max="100" step="1" value="1">
+            <input type="number" id="vol_minVolume_num" min="0" max="100" step="1" value="1">
+          </div>
+        </div>
+        <p class="hint">Snapshot: <strong id="vol_ticker"></strong>, captured <strong id="vol_captureDate"></strong>
+          — spot=<strong id="vol_spotLabel"></strong>. Not live — these sliders replay the same raw quotes
+          <code>vol_surface.py</code> pulled that day; only the OTM side of each strike (the liquid side) is
+          kept before any filtering runs, same as the Python version.</p>
+      </aside>
+
+      <div>
+        <div class="stat-grid" id="vol_stats"></div>
+        <div class="chart-card" style="margin-bottom:0;">
+          <h4>Implied vol smile — filtered quotes only</h4>
+          <canvas id="vol_smileChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= TAB 5: DELTA HEDGING ======================= -->
+  <section id="tab-hedge" class="tab-panel">
+    <div class="topic-intro">
+      <h2>Delta-hedging P&amp;L</h2>
+      <p>Sell an option at a volatility you believe in (<strong>σ<sub>hedge</sub></strong>), then hedge it by
+        holding <code>delta()</code> shares of stock, rebalanced at every step, along a path that actually
+        realizes a <em>different</em> volatility (<strong>σ<sub>realized</sub></strong>). If hedging were
+        continuous and the two matched, the hedge would replicate the payoff exactly and P&amp;L would be
+        zero. This page lets you watch what happens when they don't.</p>
+      <p>Set the two vols equal and rebalance often — P&amp;L clusters near zero. Let realized vol run below
+        the hedging vol and the seller profits on average; above it, they lose. Rebalancing more often
+        narrows the spread of outcomes; it does not move that average at all — the bias comes entirely from
+        the vol gap, not from how often you hedge.</p>
+      <div class="topic-formula" id="hedge_topic_formula"></div>
+    </div>
+    <div class="layout">
+      <aside class="panel">
+        <h3>Inputs</h3>
+        <div class="field">
+          <label>Spot S</label>
+          <div class="field-row">
+            <input type="range" id="hedge_S" min="1" max="300" step="0.5" value="100">
+            <input type="number" id="hedge_S_num" min="1" max="300" step="0.5" value="100">
+          </div>
+        </div>
+        <div class="field">
+          <label>Strike K</label>
+          <div class="field-row">
+            <input type="range" id="hedge_K" min="1" max="300" step="0.5" value="100">
+            <input type="number" id="hedge_K_num" min="1" max="300" step="0.5" value="100">
+          </div>
+        </div>
+        <div class="field">
+          <label>Time to expiry T (years)</label>
+          <div class="field-row">
+            <input type="range" id="hedge_T" min="0.02" max="3" step="0.01" value="1">
+            <input type="number" id="hedge_T_num" min="0.02" max="3" step="0.01" value="1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Risk-free rate r (%)</label>
+          <div class="field-row">
+            <input type="range" id="hedge_r" min="-0.02" max="0.15" step="0.001" value="0.05">
+            <input type="number" id="hedge_r_num" min="-2" max="15" step="0.1" value="5.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Option type</label>
+          <div class="toggle-row">
+            <button id="hedge_call_btn" class="active">Call</button>
+            <button id="hedge_put_btn">Put</button>
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Hedging vol σ<sub>hedge</sub> (%)</label>
+          <div class="field-row">
+            <input type="range" id="hedge_sigmaHedge" min="1" max="150" step="0.1" value="20">
+            <input type="number" id="hedge_sigmaHedge_num" min="1" max="150" step="0.1" value="20.0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Realized vol σ<sub>realized</sub> (%)</label>
+          <div class="field-row">
+            <input type="range" id="hedge_sigmaRealized" min="1" max="150" step="0.1" value="20">
+            <input type="number" id="hedge_sigmaRealized_num" min="1" max="150" step="0.1" value="20.0">
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="field">
+          <label>Rebalances per year</label>
+          <div class="field-row">
+            <input type="range" id="hedge_nStepsSlider" min="0" max="100" step="1" value="69">
+            <input type="number" id="hedge_nSteps_num" min="12" max="1008" step="1" value="252">
+          </div>
+        </div>
+        <div class="field">
+          <label>Paths (for distribution)</label>
+          <div class="field-row">
+            <input type="range" id="hedge_nPathsSlider" min="0" max="100" step="1" value="59">
+            <input type="number" id="hedge_nPaths_num" min="200" max="20000" step="100" value="3000">
+          </div>
+        </div>
+        <div class="field">
+          <label>Seed</label>
+          <input type="number" id="hedge_seed" step="1" value="42">
+        </div>
+        <button class="action" id="hedge_simulate_btn">Simulate</button>
+      </aside>
+
+      <div>
+        <div class="stat-grid" id="hedge_stats"></div>
+        <div class="chart-card">
+          <h4>One simulated hedge path</h4>
+          <canvas id="hedge_pathSpot" class="small"></canvas>
+          <canvas id="hedge_pathDelta" class="small"></canvas>
+          <canvas id="hedge_pathPnl" class="small"></canvas>
+        </div>
+        <div class="chart-row">
+          <div class="chart-card">
+            <h4>P&amp;L distribution across paths</h4>
+            <canvas id="hedge_distChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4>P&amp;L vs. rebalancing frequency</h4>
+            <canvas id="hedge_freqChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ======================= TAB 4: GLOSSARY ======================= -->
   <section id="tab-glossary" class="tab-panel">
     <div class="topic-intro">
@@ -601,6 +770,13 @@
   Base case everywhere defaults to S=100, K=100, T=1y, r=5%, σ=20%, q=0 — same scenario used throughout
   the repo's README and self-tests. Closed-form call price at that case is <strong>10.4506</strong>.
 </footer>
+
+<script>
+// Real AAPL option chain, pulled once by vol_surface.py's fetch_option_chain() and
+// embedded here since a static page can't call yfinance live. Raw and uncleaned —
+// the Vol Surface tab's filters run against this exact data, same as the Python version.
+const AAPL_SNAPSHOT = {"ticker":"AAPL","captured":"2026-09-01","spot":325.13,"q":0.00331,"r":0.045,"quotes":[{"strike":327.5,"bid":0.77,"ask":0.81,"volume":167353,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":330.0,"bid":0.31,"ask":0.33,"volume":144081,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":332.5,"bid":0.12,"ask":0.14,"volume":56743,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":335.0,"bid":0.05,"ask":0.07,"volume":31887,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":337.5,"bid":0.02,"ask":0.04,"volume":11928,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":340.0,"bid":0.01,"ask":0.02,"volume":10723,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":342.5,"bid":0.01,"ask":0.02,"volume":2248,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":345.0,"bid":0.0,"ask":0.02,"volume":1833,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":347.5,"bid":0.0,"ask":0.02,"volume":193,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":350.0,"bid":0.0,"ask":0.01,"volume":235,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":355.0,"bid":0.0,"ask":0.01,"volume":11,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":360.0,"bid":0.0,"ask":0.01,"volume":15,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":365.0,"bid":0.0,"ask":0.01,"volume":45,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":370.0,"bid":0.0,"ask":0.01,"volume":4,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":375.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":380.0,"bid":0.0,"ask":0.01,"volume":3,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":400.0,"bid":0,"ask":0.01,"volume":0,"expiry":"2026-09-02","T":0.00274,"type":"call"},{"strike":205.0,"bid":0,"ask":0.01,"volume":1,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":210.0,"bid":0,"ask":0.01,"volume":0,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":215.0,"bid":0,"ask":0.01,"volume":0,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":225.0,"bid":0,"ask":0.01,"volume":1000,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":230.0,"bid":0,"ask":0.01,"volume":2,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":235.0,"bid":0.0,"ask":0.01,"volume":1005,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":240.0,"bid":0.0,"ask":0.01,"volume":4004,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":245.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":250.0,"bid":0.0,"ask":0.01,"volume":26,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":255.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":260.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":265.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":270.0,"bid":0.0,"ask":0.01,"volume":46,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":275.0,"bid":0.0,"ask":0.01,"volume":9,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":277.5,"bid":0.0,"ask":0.01,"volume":4,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":280.0,"bid":0.0,"ask":0.01,"volume":6,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":282.5,"bid":0.0,"ask":0.01,"volume":3,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":285.0,"bid":0.0,"ask":0.01,"volume":1156,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":287.5,"bid":0.0,"ask":0.01,"volume":636,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":290.0,"bid":0.0,"ask":0.01,"volume":1217,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":292.5,"bid":0.0,"ask":0.01,"volume":734,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":295.0,"bid":0.0,"ask":0.01,"volume":698,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":297.5,"bid":0.0,"ask":0.02,"volume":159,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":300.0,"bid":0.01,"ask":0.02,"volume":1531,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":302.5,"bid":0.01,"ask":0.02,"volume":2017,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":305.0,"bid":0.01,"ask":0.02,"volume":5977,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":307.5,"bid":0.01,"ask":0.02,"volume":4507,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":310.0,"bid":0.01,"ask":0.03,"volume":11431,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":312.5,"bid":0.02,"ask":0.04,"volume":12317,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":315.0,"bid":0.03,"ask":0.05,"volume":31308,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":317.5,"bid":0.1,"ask":0.11,"volume":47161,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":320.0,"bid":0.27,"ask":0.29,"volume":99547,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":322.5,"bid":0.69,"ask":0.72,"volume":82654,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":325.0,"bid":1.55,"ask":1.64,"volume":69584,"expiry":"2026-09-02","T":0.00274,"type":"put"},{"strike":327.5,"bid":2.14,"ask":2.25,"volume":24334,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":330.0,"bid":1.37,"ask":1.49,"volume":48179,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":332.5,"bid":0.8,"ask":0.93,"volume":13703,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":335.0,"bid":0.48,"ask":0.51,"volume":11497,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":337.5,"bid":0.28,"ask":0.31,"volume":7247,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":340.0,"bid":0.17,"ask":0.19,"volume":15408,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":342.5,"bid":0.08,"ask":0.12,"volume":2905,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":345.0,"bid":0.06,"ask":0.08,"volume":1584,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":347.5,"bid":0.02,"ask":0.05,"volume":610,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":350.0,"bid":0.03,"ask":0.04,"volume":3779,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":355.0,"bid":0.01,"ask":0.02,"volume":1984,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":360.0,"bid":0.0,"ask":0.02,"volume":375,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":365.0,"bid":0.0,"ask":0.02,"volume":110,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":370.0,"bid":0.0,"ask":0.02,"volume":15,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":375.0,"bid":0.0,"ask":0.01,"volume":12,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":380.0,"bid":0.0,"ask":0.01,"volume":12,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":385.0,"bid":0.0,"ask":0.01,"volume":5,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":390.0,"bid":0.0,"ask":0.01,"volume":5,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":395.0,"bid":0.0,"ask":0.01,"volume":5,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":400.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":405.0,"bid":0.0,"ask":0.01,"volume":70,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":415.0,"bid":0.0,"ask":0.01,"volume":50,"expiry":"2026-09-04","T":0.00822,"type":"call"},{"strike":110.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":125.0,"bid":0,"ask":0.01,"volume":0,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":135.0,"bid":0.0,"ask":0.01,"volume":1000,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":150.0,"bid":0,"ask":0.01,"volume":0,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":165.0,"bid":0,"ask":0.01,"volume":0,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":170.0,"bid":0.0,"ask":0.01,"volume":59,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":175.0,"bid":0.0,"ask":0.01,"volume":190,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":180.0,"bid":0.0,"ask":0.01,"volume":100,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":185.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":190.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":195.0,"bid":0.0,"ask":0.01,"volume":2,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":200.0,"bid":0.0,"ask":0.01,"volume":14,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":205.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":210.0,"bid":0.0,"ask":0.01,"volume":2,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":215.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":220.0,"bid":0.0,"ask":0.01,"volume":1244,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":225.0,"bid":0.0,"ask":0.01,"volume":3,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":230.0,"bid":0.0,"ask":0.01,"volume":33,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":235.0,"bid":0.0,"ask":0.01,"volume":11,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":240.0,"bid":0.0,"ask":0.01,"volume":2,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":245.0,"bid":0.0,"ask":0.01,"volume":4,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":250.0,"bid":0.0,"ask":0.01,"volume":10,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":255.0,"bid":0.0,"ask":0.1,"volume":33,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":257.5,"bid":0.0,"ask":0.01,"volume":55,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":260.0,"bid":0.0,"ask":0.02,"volume":186,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":265.0,"bid":0.01,"ask":0.06,"volume":95,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":270.0,"bid":0.01,"ask":0.05,"volume":54,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":275.0,"bid":0.01,"ask":0.03,"volume":18,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":277.5,"bid":0.01,"ask":0.06,"volume":169,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":280.0,"bid":0.01,"ask":0.05,"volume":1211,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":282.5,"bid":0.01,"ask":0.07,"volume":20,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":285.0,"bid":0.02,"ask":0.22,"volume":44,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":287.5,"bid":0.0,"ask":0.14,"volume":8,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":290.0,"bid":0.02,"ask":0.11,"volume":925,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":292.5,"bid":0.02,"ask":0.05,"volume":35,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":295.0,"bid":0.01,"ask":0.04,"volume":1356,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":297.5,"bid":0.03,"ask":0.05,"volume":321,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":300.0,"bid":0.04,"ask":0.06,"volume":1798,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":302.5,"bid":0.05,"ask":0.07,"volume":486,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":305.0,"bid":0.07,"ask":0.09,"volume":2502,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":307.5,"bid":0.1,"ask":0.13,"volume":1526,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":310.0,"bid":0.16,"ask":0.18,"volume":5221,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":312.5,"bid":0.25,"ask":0.28,"volume":4213,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":315.0,"bid":0.42,"ask":0.46,"volume":10525,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":317.5,"bid":0.72,"ask":0.76,"volume":9519,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":320.0,"bid":1.2,"ask":1.3,"volume":21149,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":322.5,"bid":1.89,"ask":2.03,"volume":18225,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":325.0,"bid":2.9,"ask":3.05,"volume":26765,"expiry":"2026-09-04","T":0.00822,"type":"put"},{"strike":327.5,"bid":3.7,"ask":4.05,"volume":1532,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":330.0,"bid":2.83,"ask":3.05,"volume":10036,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":332.5,"bid":2.08,"ask":2.25,"volume":1232,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":335.0,"bid":1.51,"ask":1.68,"volume":2536,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":337.5,"bid":1.04,"ask":1.26,"volume":866,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":340.0,"bid":0.75,"ask":0.87,"volume":13154,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":342.5,"bid":0.49,"ask":0.59,"volume":370,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":345.0,"bid":0.34,"ask":0.4,"volume":2397,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":347.5,"bid":0.15,"ask":0.32,"volume":263,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":350.0,"bid":0.16,"ask":0.25,"volume":417,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":355.0,"bid":0.05,"ask":0.14,"volume":28,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":360.0,"bid":0.04,"ask":0.08,"volume":169,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":370.0,"bid":0.01,"ask":0.04,"volume":20,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":390.0,"bid":0.01,"ask":0.26,"volume":24,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":405.0,"bid":0.0,"ask":0.03,"volume":5,"expiry":"2026-09-09","T":0.02192,"type":"call"},{"strike":240.0,"bid":0,"ask":1.94,"volume":0,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":245.0,"bid":0,"ask":1.95,"volume":0,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":250.0,"bid":0,"ask":1.91,"volume":1,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":255.0,"bid":0,"ask":1.87,"volume":0,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":260.0,"bid":0.0,"ask":1.8,"volume":0,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":265.0,"bid":0.0,"ask":0.46,"volume":6,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":270.0,"bid":0.0,"ask":0.28,"volume":5,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":275.0,"bid":0.01,"ask":0.15,"volume":4,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":277.5,"bid":0.01,"ask":0.19,"volume":8,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":280.0,"bid":0.03,"ask":0.28,"volume":13,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":282.5,"bid":0.01,"ask":0.49,"volume":4,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":285.0,"bid":0.03,"ask":0.13,"volume":9,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":287.5,"bid":0.0,"ask":0.43,"volume":10,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":290.0,"bid":0.04,"ask":0.15,"volume":29,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":292.5,"bid":0.04,"ask":0.18,"volume":45,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":295.0,"bid":0.05,"ask":0.19,"volume":50,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":297.5,"bid":0.06,"ask":0.27,"volume":29,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":300.0,"bid":0.2,"ask":0.25,"volume":217,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":302.5,"bid":0.1,"ask":0.36,"volume":100,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":305.0,"bid":0.35,"ask":0.5,"volume":400,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":307.5,"bid":0.49,"ask":0.6,"volume":189,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":310.0,"bid":0.7,"ask":0.79,"volume":480,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":312.5,"bid":0.96,"ask":1.08,"volume":1299,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":315.0,"bid":1.35,"ask":1.53,"volume":1789,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":317.5,"bid":1.85,"ask":2.1,"volume":564,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":320.0,"bid":2.57,"ask":2.82,"volume":1534,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":322.5,"bid":3.45,"ask":3.65,"volume":859,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":325.0,"bid":4.45,"ask":4.8,"volume":1255,"expiry":"2026-09-09","T":0.02192,"type":"put"},{"strike":327.5,"bid":4.65,"ask":4.9,"volume":1373,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":330.0,"bid":3.65,"ask":3.95,"volume":8015,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":332.5,"bid":2.8,"ask":2.97,"volume":1301,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":335.0,"bid":2.11,"ask":2.34,"volume":6330,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":337.5,"bid":1.56,"ask":1.71,"volume":676,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":340.0,"bid":1.18,"ask":1.31,"volume":4367,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":342.5,"bid":0.87,"ask":0.95,"volume":701,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":345.0,"bid":0.65,"ask":0.7,"volume":772,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":350.0,"bid":0.35,"ask":0.39,"volume":1894,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":355.0,"bid":0.19,"ask":0.23,"volume":3123,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":360.0,"bid":0.07,"ask":0.14,"volume":1249,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":365.0,"bid":0.07,"ask":0.09,"volume":226,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":370.0,"bid":0.01,"ask":0.09,"volume":19,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":375.0,"bid":0.01,"ask":0.09,"volume":48,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":380.0,"bid":0.02,"ask":0.08,"volume":8,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":385.0,"bid":0.0,"ask":0.23,"volume":4,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":390.0,"bid":0.0,"ask":0.23,"volume":64,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":395.0,"bid":0.0,"ask":0.03,"volume":7,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":400.0,"bid":0.0,"ask":0.06,"volume":1,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":405.0,"bid":0.0,"ask":0.05,"volume":33,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":410.0,"bid":0.0,"ask":0.04,"volume":8,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":415.0,"bid":0.0,"ask":0.03,"volume":10,"expiry":"2026-09-11","T":0.0274,"type":"call"},{"strike":110.0,"bid":0.0,"ask":0.01,"volume":0,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":155.0,"bid":0,"ask":1.22,"volume":0,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":160.0,"bid":0,"ask":1.22,"volume":0,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":165.0,"bid":0,"ask":1.22,"volume":0,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":170.0,"bid":0,"ask":1.22,"volume":0,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":175.0,"bid":0,"ask":1.22,"volume":0,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":180.0,"bid":0,"ask":1.22,"volume":0,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":185.0,"bid":0,"ask":0.68,"volume":0,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":190.0,"bid":0.0,"ask":1.13,"volume":4,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":195.0,"bid":0,"ask":0.01,"volume":1,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":200.0,"bid":0.0,"ask":0.01,"volume":11,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":205.0,"bid":0.0,"ask":0.01,"volume":4,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":210.0,"bid":0.0,"ask":0.06,"volume":80,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":215.0,"bid":0.0,"ask":0.06,"volume":223,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":220.0,"bid":0.0,"ask":0.75,"volume":30,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":225.0,"bid":0.0,"ask":0.08,"volume":2,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":230.0,"bid":0.0,"ask":0.75,"volume":50,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":235.0,"bid":0.0,"ask":0.01,"volume":65,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":240.0,"bid":0.01,"ask":0.1,"volume":41,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":245.0,"bid":0.01,"ask":0.1,"volume":22,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":250.0,"bid":0.02,"ask":0.05,"volume":74,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":255.0,"bid":0.01,"ask":0.1,"volume":30,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":260.0,"bid":0.03,"ask":0.11,"volume":11,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":265.0,"bid":0.0,"ask":0.26,"volume":39,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":270.0,"bid":0.02,"ask":0.05,"volume":97,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":275.0,"bid":0.05,"ask":0.08,"volume":57,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":277.5,"bid":0.01,"ask":0.16,"volume":1,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":280.0,"bid":0.06,"ask":0.1,"volume":278,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":282.5,"bid":0.03,"ask":0.15,"volume":7,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":285.0,"bid":0.09,"ask":0.12,"volume":308,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":287.5,"bid":0.03,"ask":0.29,"volume":47,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":290.0,"bid":0.14,"ask":0.22,"volume":372,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":292.5,"bid":0.16,"ask":0.24,"volume":205,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":295.0,"bid":0.23,"ask":0.28,"volume":809,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":297.5,"bid":0.27,"ask":0.36,"volume":184,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":300.0,"bid":0.37,"ask":0.43,"volume":2153,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":302.5,"bid":0.47,"ask":0.58,"volume":242,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":305.0,"bid":0.64,"ask":0.74,"volume":931,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":307.5,"bid":0.84,"ask":0.97,"volume":520,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":310.0,"bid":1.1,"ask":1.24,"volume":2425,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":312.5,"bid":1.49,"ask":1.63,"volume":410,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":315.0,"bid":1.97,"ask":2.08,"volume":2815,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":317.5,"bid":2.54,"ask":2.67,"volume":787,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":320.0,"bid":3.35,"ask":3.55,"volume":2004,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":322.5,"bid":4.25,"ask":4.5,"volume":1359,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":325.0,"bid":5.35,"ask":5.6,"volume":3221,"expiry":"2026-09-11","T":0.0274,"type":"put"},{"strike":327.5,"bid":6.3,"ask":6.5,"volume":651,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":330.0,"bid":5.2,"ask":5.4,"volume":12530,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":332.5,"bid":4.2,"ask":4.45,"volume":575,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":335.0,"bid":3.4,"ask":3.55,"volume":4448,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":337.5,"bid":2.73,"ask":2.95,"volume":811,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":340.0,"bid":2.2,"ask":2.25,"volume":9476,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":345.0,"bid":1.37,"ask":1.41,"volume":5337,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":350.0,"bid":0.84,"ask":0.89,"volume":8596,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":355.0,"bid":0.48,"ask":0.56,"volume":1294,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":360.0,"bid":0.29,"ask":0.35,"volume":693,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":365.0,"bid":0.2,"ask":0.23,"volume":493,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":370.0,"bid":0.12,"ask":0.15,"volume":527,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":375.0,"bid":0.08,"ask":0.13,"volume":152,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":380.0,"bid":0.06,"ask":0.08,"volume":181,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":385.0,"bid":0.02,"ask":0.07,"volume":21,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":390.0,"bid":0.03,"ask":0.05,"volume":28,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":395.0,"bid":0.01,"ask":0.07,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":400.0,"bid":0.02,"ask":0.03,"volume":995,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":405.0,"bid":0.0,"ask":0.03,"volume":37,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":410.0,"bid":0.0,"ask":0.02,"volume":3,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":415.0,"bid":0.0,"ask":0.02,"volume":85,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":420.0,"bid":0.0,"ask":0.02,"volume":2072,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":430.0,"bid":0.0,"ask":0.02,"volume":2,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":440.0,"bid":0.0,"ask":0.01,"volume":57,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":450.0,"bid":0.0,"ask":0.01,"volume":11,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":460.0,"bid":0.0,"ask":0.01,"volume":62,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":470.0,"bid":0.0,"ask":0.01,"volume":2,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":480.0,"bid":0.0,"ask":0.01,"volume":6,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":490.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":500.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":510.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":520.0,"bid":0.0,"ask":0.01,"volume":42,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":530.0,"bid":0.0,"ask":0.01,"volume":4,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":540.0,"bid":0.0,"ask":0.01,"volume":50,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":550.0,"bid":0.0,"ask":0.23,"volume":6,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":560.0,"bid":0.0,"ask":0.01,"volume":13,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":570.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":580.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":590.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":600.0,"bid":0.0,"ask":0.01,"volume":2,"expiry":"2026-09-18","T":0.04658,"type":"call"},{"strike":50.0,"bid":0.0,"ask":0.01,"volume":1000,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":55.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":60.0,"bid":0.0,"ask":0.01,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":65.0,"bid":0.0,"ask":1.94,"volume":5,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":70.0,"bid":0.0,"ask":1.94,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":75.0,"bid":0.0,"ask":0.01,"volume":27,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":80.0,"bid":0.0,"ask":0.19,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":85.0,"bid":0.0,"ask":1.94,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":90.0,"bid":0.0,"ask":1.94,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":95.0,"bid":0.0,"ask":0.03,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":100.0,"bid":0.0,"ask":0.03,"volume":61,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":105.0,"bid":0.0,"ask":0.02,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":110.0,"bid":0.0,"ask":0.51,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":115.0,"bid":0.0,"ask":0.03,"volume":11,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":120.0,"bid":0.0,"ask":0.03,"volume":40,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":125.0,"bid":0.0,"ask":0.03,"volume":9,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":130.0,"bid":0.0,"ask":0.03,"volume":231,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":135.0,"bid":0.0,"ask":0.02,"volume":80,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":140.0,"bid":0.0,"ask":0.06,"volume":50,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":145.0,"bid":0.0,"ask":0.03,"volume":23,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":150.0,"bid":0.0,"ask":0.02,"volume":220,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":155.0,"bid":0.0,"ask":0.02,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":160.0,"bid":0.0,"ask":0.04,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":165.0,"bid":0.0,"ask":0.02,"volume":2,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":170.0,"bid":0.0,"ask":0.02,"volume":5,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":175.0,"bid":0.0,"ask":0.05,"volume":1,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":180.0,"bid":0.0,"ask":0.03,"volume":61,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":185.0,"bid":0.0,"ask":0.06,"volume":3,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":190.0,"bid":0.0,"ask":0.02,"volume":14,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":195.0,"bid":0.01,"ask":0.02,"volume":20,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":200.0,"bid":0.01,"ask":0.02,"volume":11,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":205.0,"bid":0.01,"ask":0.25,"volume":30,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":210.0,"bid":0.01,"ask":0.02,"volume":51,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":215.0,"bid":0.01,"ask":0.03,"volume":21,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":220.0,"bid":0.01,"ask":0.02,"volume":5,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":225.0,"bid":0.0,"ask":0.11,"volume":17,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":230.0,"bid":0.02,"ask":0.1,"volume":109,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":235.0,"bid":0.01,"ask":0.25,"volume":34,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":240.0,"bid":0.03,"ask":0.06,"volume":74,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":245.0,"bid":0.03,"ask":0.07,"volume":95,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":250.0,"bid":0.05,"ask":0.09,"volume":69,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":255.0,"bid":0.06,"ask":0.18,"volume":44,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":260.0,"bid":0.09,"ask":0.11,"volume":61,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":265.0,"bid":0.1,"ask":0.13,"volume":106,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":270.0,"bid":0.13,"ask":0.17,"volume":266,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":275.0,"bid":0.16,"ask":0.2,"volume":248,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":280.0,"bid":0.22,"ask":0.25,"volume":4175,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":285.0,"bid":0.3,"ask":0.32,"volume":3765,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":287.5,"bid":0.25,"ask":0.48,"volume":51,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":290.0,"bid":0.4,"ask":0.45,"volume":967,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":292.5,"bid":0.45,"ask":0.56,"volume":37,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":295.0,"bid":0.58,"ask":0.64,"volume":6907,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":297.5,"bid":0.7,"ask":0.79,"volume":272,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":300.0,"bid":0.87,"ask":0.91,"volume":8931,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":302.5,"bid":1.07,"ask":1.17,"volume":663,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":305.0,"bid":1.33,"ask":1.44,"volume":1943,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":307.5,"bid":1.65,"ask":1.76,"volume":549,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":310.0,"bid":2.06,"ask":2.15,"volume":2193,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":312.5,"bid":2.55,"ask":2.68,"volume":770,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":315.0,"bid":3.15,"ask":3.25,"volume":3014,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":317.5,"bid":3.8,"ask":4.0,"volume":1785,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":320.0,"bid":4.65,"ask":4.85,"volume":2840,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":322.5,"bid":5.6,"ask":5.85,"volume":871,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":325.0,"bid":6.75,"ask":6.9,"volume":2156,"expiry":"2026-09-18","T":0.04658,"type":"put"},{"strike":330.0,"bid":6.4,"ask":6.7,"volume":2329,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":335.0,"bid":4.4,"ask":4.75,"volume":850,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":340.0,"bid":3.05,"ask":3.25,"volume":754,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":345.0,"bid":1.94,"ask":2.21,"volume":494,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":350.0,"bid":1.27,"ask":1.43,"volume":1096,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":355.0,"bid":0.79,"ask":0.95,"volume":320,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":360.0,"bid":0.53,"ask":0.65,"volume":639,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":365.0,"bid":0.36,"ask":0.46,"volume":151,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":370.0,"bid":0.21,"ask":0.33,"volume":471,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":375.0,"bid":0.07,"ask":0.35,"volume":66,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":380.0,"bid":0.03,"ask":0.15,"volume":10,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":385.0,"bid":0.01,"ask":0.2,"volume":13,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":390.0,"bid":0.01,"ask":0.1,"volume":1,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":395.0,"bid":0.01,"ask":0.07,"volume":5,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":400.0,"bid":0.01,"ask":0.05,"volume":1,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":405.0,"bid":0.0,"ask":0.34,"volume":4,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":410.0,"bid":0.0,"ask":0.09,"volume":1,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":415.0,"bid":0.0,"ask":0.03,"volume":6,"expiry":"2026-09-25","T":0.06575,"type":"call"},{"strike":110.0,"bid":0.0,"ask":1.94,"volume":0,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":170.0,"bid":0.0,"ask":0.3,"volume":0,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":185.0,"bid":0.0,"ask":0.06,"volume":1,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":190.0,"bid":0.01,"ask":0.03,"volume":23,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":195.0,"bid":0.0,"ask":0.09,"volume":15,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":200.0,"bid":0.01,"ask":0.03,"volume":29,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":205.0,"bid":0.01,"ask":0.03,"volume":4,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":210.0,"bid":0.0,"ask":0.04,"volume":49,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":215.0,"bid":0.0,"ask":0.14,"volume":10,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":220.0,"bid":0.0,"ask":0.06,"volume":16,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":225.0,"bid":0.0,"ask":0.09,"volume":6,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":230.0,"bid":0.0,"ask":0.12,"volume":2,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":235.0,"bid":0.02,"ask":0.24,"volume":4,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":240.0,"bid":0.02,"ask":0.38,"volume":8,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":245.0,"bid":0.04,"ask":0.17,"volume":14,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":250.0,"bid":0.05,"ask":0.14,"volume":8,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":255.0,"bid":0.05,"ask":0.19,"volume":10,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":260.0,"bid":0.01,"ask":0.36,"volume":18,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":265.0,"bid":0.08,"ask":0.34,"volume":8,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":270.0,"bid":0.18,"ask":0.29,"volume":91,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":275.0,"bid":0.25,"ask":0.37,"volume":43,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":280.0,"bid":0.33,"ask":0.44,"volume":177,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":285.0,"bid":0.47,"ask":0.57,"volume":205,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":290.0,"bid":0.65,"ask":0.74,"volume":189,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":295.0,"bid":0.9,"ask":1.01,"volume":389,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":300.0,"bid":1.31,"ask":1.48,"volume":976,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":305.0,"bid":1.93,"ask":2.13,"volume":358,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":310.0,"bid":2.79,"ask":3.05,"volume":370,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":315.0,"bid":4.0,"ask":4.3,"volume":1113,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":320.0,"bid":5.55,"ask":5.95,"volume":182,"expiry":"2026-09-25","T":0.06575,"type":"put"},{"strike":325.0,"bid":7.75,"ask":8.05,"volume":555,"expiry":"2026-09-25","T":0.06575,"type":"put"}]};
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 
@@ -1028,6 +1204,46 @@ const Plot = (function () {
       counts[idx]++;
     });
     const maxCount = Math.max(...counts);
+
+    if (opts.vertical) {
+      // standard orientation: the value being histogrammed on x, count on y —
+      // used for the hedge P&L distribution; the rotated version below (value
+      // on y) is what the Monte Carlo terminal-spot histogram needs instead
+      const countDom = niceDomain(0, maxCount, 4);
+      const pw = w - M.left - M.right, ph = h - M.top - M.bottom;
+
+      ctx.strokeStyle = cssVar("--grid"); ctx.fillStyle = text; ctx.font = "10px sans-serif";
+      yDom.ticks.forEach(t => {
+        if (t < yDom.min - 1e-9 || t > yDom.max + 1e-9) return;
+        const x = M.left + (t - yDom.min) / (yDom.max - yDom.min) * pw;
+        ctx.beginPath(); ctx.moveTo(x, M.top); ctx.lineTo(x, h - M.bottom); ctx.stroke();
+        ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillText(fmtNum(t), x, h - M.bottom + 4);
+      });
+      ctx.strokeStyle = textStrong;
+      ctx.beginPath(); ctx.moveTo(M.left, M.top); ctx.lineTo(M.left, h - M.bottom); ctx.lineTo(w - M.right, h - M.bottom); ctx.stroke();
+
+      ctx.fillStyle = opts.color || cssVar("--c0");
+      for (let i = 0; i < bins; i++) {
+        const x0 = M.left + (i * binW) / (yDom.max - yDom.min) * pw;
+        const x1 = M.left + ((i + 1) * binW) / (yDom.max - yDom.min) * pw;
+        const barH = counts[i] / countDom.max * ph;
+        ctx.fillRect(Math.min(x0, x1), h - M.bottom - barH, Math.abs(x1 - x0) - 1, barH);
+      }
+      ctx.fillStyle = text; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      countDom.ticks.forEach(t => {
+        if (t < countDom.min - 1e-9 || t > countDom.max + 1e-9) return;
+        const y = M.top + ph - (t - countDom.min) / (countDom.max - countDom.min) * ph;
+        ctx.fillText(fmtNum(t), M.left - 6, y);
+      });
+      if (opts.hLine !== undefined) {
+        const x = M.left + (opts.hLine - yDom.min) / (yDom.max - yDom.min) * pw;
+        ctx.strokeStyle = textStrong; ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(x, M.top); ctx.lineTo(x, h - M.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      return;
+    }
+
     const xDom = niceDomain(0, maxCount, 4);
 
     ctx.strokeStyle = cssVar("--grid"); ctx.fillStyle = text; ctx.font = "10px sans-serif";
@@ -1376,6 +1592,218 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+/* ---------------- TAB 4: Vol Surface ---------------- */
+
+const volState = { maxSpread: 0.5, moneynessBand: 0.3, minVolume: 1 };
+
+bindField("vol_maxSpread", "vol_maxSpread_num", v => { volState.maxSpread = v; drawVol(); }, { scale: 100, decimals: 0 });
+bindField("vol_moneynessBand", "vol_moneynessBand_num", v => { volState.moneynessBand = v; drawVol(); }, { scale: 100, decimals: 0 });
+bindField("vol_minVolume", "vol_minVolume_num", v => { volState.minVolume = v; drawVol(); }, { decimals: 0 });
+
+document.getElementById("vol_ticker").textContent = AAPL_SNAPSHOT.ticker;
+document.getElementById("vol_captureDate").textContent = AAPL_SNAPSHOT.captured;
+document.getElementById("vol_spotLabel").textContent = AAPL_SNAPSHOT.spot.toFixed(2);
+
+// same pipeline as vol_surface.py: keep only the OTM side of each strike, then
+// filter for a real market, a trustworthy spread, a sane moneyness range, and
+// some actual volume — before ever handing a quote to the solver
+function computeVolSmile() {
+  const { maxSpread, moneynessBand, minVolume } = volState;
+  const spot = AAPL_SNAPSHOT.spot, q = AAPL_SNAPSHOT.q, r = AAPL_SNAPSHOT.r;
+
+  const otm = AAPL_SNAPSHOT.quotes.filter(row =>
+    (row.type === "call" && row.strike >= spot) || (row.type === "put" && row.strike < spot));
+
+  const kept = [];
+  otm.forEach(row => {
+    if (row.bid <= 0 || row.ask <= 0) return;
+    const mid = (row.bid + row.ask) / 2;
+    const relSpread = (row.ask - row.bid) / mid;
+    if (relSpread > maxSpread) return;
+    const moneyness = row.strike / spot;
+    if (Math.abs(moneyness - 1) > moneynessBand) return;
+    if (row.volume < minVolume) return;
+    kept.push({ ...row, mid, moneyness });
+  });
+
+  const solved = [];
+  kept.forEach(row => {
+    const result = impliedVol(row.mid, spot, row.strike, row.T, r, q, row.type);
+    if (result.converged && result.iv !== null && result.iv < 3) solved.push({ ...row, iv: result.iv });
+  });
+
+  return { otmCount: otm.length, keptCount: kept.length, solved };
+}
+
+function drawVol() {
+  const { otmCount, keptCount, solved } = computeVolSmile();
+  const expiries = [...new Set(solved.map(r => r.expiry))];
+  const colorKeys = ["--c0", "--c1", "--c2", "--c3", "--c4", "--c5"];
+
+  document.getElementById("vol_stats").innerHTML = [
+    statCard("Raw OTM quotes", otmCount.toLocaleString()),
+    statCard("Kept after filters", keptCount.toLocaleString()),
+    statCard("Solved IVs", solved.length.toLocaleString()),
+    statCard("Expiries with data", expiries.length),
+  ].join("");
+
+  const series = expiries.map((expiry, i) => {
+    const rows = solved.filter(r => r.expiry === expiry).sort((a, b) => a.moneyness - b.moneyness);
+    return {
+      points: rows.map(r => [r.moneyness, r.iv]),
+      color: getCssColor(colorKeys[i % colorKeys.length]),
+      label: expiry, dots: true, width: 1.5,
+    };
+  });
+
+  Plot.line(document.getElementById("vol_smileChart"), { series, vLine: 1.0 });
+}
+
+/* ---------------- TAB 5: Delta Hedging ---------------- */
+
+const hedgeState = { S: 100, K: 100, T: 1, r: 0.05, q: 0, optionType: "call",
+  sigmaHedge: 0.20, sigmaRealized: 0.20, nSteps: 252, nPaths: 3000, seed: 42 };
+
+bindField("hedge_S", "hedge_S_num", v => { hedgeState.S = v; });
+bindField("hedge_K", "hedge_K_num", v => { hedgeState.K = v; });
+bindField("hedge_T", "hedge_T_num", v => { hedgeState.T = v; });
+bindField("hedge_r", "hedge_r_num", v => { hedgeState.r = v; }, { scale: 100, decimals: 1 });
+bindField("hedge_sigmaHedge", "hedge_sigmaHedge_num", v => { hedgeState.sigmaHedge = v / 100; }, { decimals: 1 });
+bindField("hedge_sigmaRealized", "hedge_sigmaRealized_num", v => { hedgeState.sigmaRealized = v / 100; }, { decimals: 1 });
+bindToggle("hedge_call_btn", "hedge_put_btn", ot => { hedgeState.optionType = ot; });
+
+const HEDGE_STEPS_MIN = 12, HEDGE_STEPS_MAX = 1008;
+function stepsFromSlider(v) { return Math.round(HEDGE_STEPS_MIN * Math.pow(HEDGE_STEPS_MAX / HEDGE_STEPS_MIN, v / 100)); }
+function sliderFromSteps(n) { return Math.round(Math.log(n / HEDGE_STEPS_MIN) / Math.log(HEDGE_STEPS_MAX / HEDGE_STEPS_MIN) * 100); }
+{
+  const range = document.getElementById("hedge_nStepsSlider");
+  const num = document.getElementById("hedge_nSteps_num");
+  function fromRange() { hedgeState.nSteps = stepsFromSlider(+range.value); num.value = hedgeState.nSteps; }
+  function fromNumber(finalize) {
+    let n = +num.value;
+    if (isNaN(n)) { if (!finalize) return; n = hedgeState.nSteps; }
+    n = Math.min(HEDGE_STEPS_MAX, Math.max(HEDGE_STEPS_MIN, Math.round(n)));
+    hedgeState.nSteps = n; range.value = sliderFromSteps(n);
+    if (finalize) num.value = n;
+  }
+  range.addEventListener("input", fromRange);
+  num.addEventListener("input", () => fromNumber(false));
+  num.addEventListener("change", () => fromNumber(true));
+  num.addEventListener("blur", () => fromNumber(true));
+  fromRange();
+}
+
+const HEDGE_PATHS_MIN = 200, HEDGE_PATHS_MAX = 20000;
+function hedgePathsFromSlider(v) { return Math.round(HEDGE_PATHS_MIN * Math.pow(HEDGE_PATHS_MAX / HEDGE_PATHS_MIN, v / 100)); }
+function sliderFromHedgePaths(n) { return Math.round(Math.log(n / HEDGE_PATHS_MIN) / Math.log(HEDGE_PATHS_MAX / HEDGE_PATHS_MIN) * 100); }
+{
+  const range = document.getElementById("hedge_nPathsSlider");
+  const num = document.getElementById("hedge_nPaths_num");
+  function fromRange() { hedgeState.nPaths = hedgePathsFromSlider(+range.value); num.value = hedgeState.nPaths; }
+  function fromNumber(finalize) {
+    let n = +num.value;
+    if (isNaN(n)) { if (!finalize) return; n = hedgeState.nPaths; }
+    n = Math.min(HEDGE_PATHS_MAX, Math.max(HEDGE_PATHS_MIN, Math.round(n)));
+    hedgeState.nPaths = n; range.value = sliderFromHedgePaths(n);
+    if (finalize) num.value = n;
+  }
+  range.addEventListener("input", fromRange);
+  num.addEventListener("input", () => fromNumber(false));
+  num.addEventListener("change", () => fromNumber(true));
+  num.addEventListener("blur", () => fromNumber(true));
+  fromRange();
+}
+document.getElementById("hedge_seed").addEventListener("input", e => { hedgeState.seed = (+e.target.value) >>> 0; });
+
+// sells one option at sigmaHedge, delta-hedges it along a Project-3-style GBM
+// path simulated at sigmaRealized, tracking cash/stock exactly like delta_hedge.py
+function simulateHedge(S0, K, T, r, sigmaHedge, sigmaRealized, optionType, q, nSteps, nPaths, seed, trackHistory) {
+  const isCall = optionType === "call";
+  const { tGrid, paths } = simulateGbmPaths(S0, T, r, sigmaRealized, q, nPaths, nSteps, seed);
+  const dt = T / nSteps;
+
+  const premium = bsPrice(S0, K, T, r, sigmaHedge, optionType, q);
+  const d0 = bsDelta(S0, K, T, r, sigmaHedge, optionType, q);
+  const shares = new Float64Array(nPaths).fill(d0);
+  const cash = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) cash[p] = premium - shares[p] * paths[p][0];
+
+  let deltaHist, portfolioHist;
+  if (trackHistory) {
+    deltaHist = new Float64Array(nSteps + 1); deltaHist[0] = shares[0];
+    portfolioHist = new Float64Array(nSteps + 1); portfolioHist[0] = cash[0] + shares[0] * paths[0][0];
+  }
+
+  for (let i = 1; i <= nSteps; i++) {
+    const tRemaining = T - i * dt;
+    for (let p = 0; p < nPaths; p++) {
+      const Sprev = paths[p][i - 1], Snow = paths[p][i];
+      cash[p] = cash[p] * Math.exp(r * dt) + shares[p] * Sprev * q * dt;
+      if (i < nSteps) {
+        const newDelta = bsDelta(Snow, K, tRemaining, r, sigmaHedge, optionType, q);
+        cash[p] -= (newDelta - shares[p]) * Snow;
+        shares[p] = newDelta;
+      }
+    }
+    if (trackHistory) { deltaHist[i] = shares[0]; portfolioHist[i] = cash[0] + shares[0] * paths[0][i]; }
+  }
+
+  const hedgePnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const ST = paths[p][nSteps];
+    const payoff = isCall ? Math.max(ST - K, 0) : Math.max(K - ST, 0);
+    hedgePnl[p] = (cash[p] + shares[p] * ST) - payoff;
+  }
+
+  const result = { hedgePnl, premium, tGrid };
+  if (trackHistory) { result.S = paths[0]; result.delta = deltaHist; result.portfolio = portfolioHist; }
+  return result;
+}
+
+function arrMean(a) { let s = 0; for (let i = 0; i < a.length; i++) s += a[i]; return s / a.length; }
+function arrStd(a) { const m = arrMean(a); let s = 0; for (let i = 0; i < a.length; i++) s += (a[i] - m) ** 2; return Math.sqrt(s / (a.length - 1)); }
+
+function runHedge() {
+  const { S, K, T, r, q, optionType, sigmaHedge, sigmaRealized, nSteps, nPaths, seed } = hedgeState;
+
+  const single = simulateHedge(S, K, T, r, sigmaHedge, sigmaRealized, optionType, q, nSteps, 1, seed, true);
+  const dist = simulateHedge(S, K, T, r, sigmaHedge, sigmaRealized, optionType, q, nSteps, nPaths, seed, false);
+  const pnl = dist.hedgePnl;
+  const mean = arrMean(pnl), std = arrStd(pnl);
+
+  document.getElementById("hedge_stats").innerHTML = [
+    statCard("Premium collected", fmt(single.premium, 4)),
+    statCard("Mean hedge P&L", fmt(mean, 4)),
+    statCard("Std hedge P&L", fmt(std, 4)),
+    statCard("Vol gap", `${((sigmaRealized - sigmaHedge) * 100).toFixed(1)} pts`, "realized − hedged"),
+  ].join("");
+
+  const spotSeries = { points: Array.from(single.tGrid).map((t, i) => [t, single.S[i]]), color: getCssColor("--c0") };
+  const deltaSeries = { points: Array.from(single.tGrid).map((t, i) => [t, single.delta[i]]), color: getCssColor("--c2") };
+  const pnlPath = Array.from(single.tGrid).map((t, i) => [t, single.portfolio[i] - single.premium]);
+  Plot.line(document.getElementById("hedge_pathSpot"), { series: [spotSeries], hLines: [{ y: K, label: `K=${K.toFixed(0)}` }] });
+  Plot.line(document.getElementById("hedge_pathDelta"), { series: [deltaSeries] });
+  Plot.line(document.getElementById("hedge_pathPnl"), { series: [{ points: pnlPath, color: getCssColor("--c3") }], hLines: [{ y: 0 }] });
+
+  Plot.hist(document.getElementById("hedge_distChart"), Array.from(pnl), { bins: 60, hLine: 0, color: getCssColor("--c0"), vertical: true });
+
+  const freqSteps = [12, 26, 52, 104, 252, 504, 1008];
+  const freqPaths = Math.min(nPaths, 2000);
+  const freqPoints = [], freqBand = [];
+  freqSteps.forEach(ns => {
+    const r2 = simulateHedge(S, K, T, r, sigmaHedge, sigmaRealized, optionType, q, ns, freqPaths, seed, false);
+    const m = arrMean(r2.hedgePnl), s = arrStd(r2.hedgePnl);
+    freqPoints.push([ns, m]); freqBand.push([ns, m - s, m + s]);
+  });
+  Plot.line(document.getElementById("hedge_freqChart"), {
+    xLog: true,
+    series: [{ points: freqPoints, color: getCssColor("--c3"), label: "mean P&L" }],
+    band: freqBand, bandColor: hexToRgba(getCssColor("--c0"), 0.15),
+  });
+}
+
+document.getElementById("hedge_simulate_btn").addEventListener("click", runHedge);
+
 /* ---------------- glossary ---------------- */
 
 // shared building blocks so the Greeks' formula cards don't re-derive d1/d2 from scratch each time
@@ -1653,6 +2081,8 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     if (btn.dataset.tab === "bs") drawBS();
     if (btn.dataset.tab === "iv") solveIV();
     if (btn.dataset.tab === "mc") runMC();
+    if (btn.dataset.tab === "vol") drawVol();
+    if (btn.dataset.tab === "hedge") runHedge();
   });
 });
 
@@ -1664,13 +2094,36 @@ window.addEventListener("resize", () => {
     if (active === "bs") drawBS();
     if (active === "iv") solveIV();
     if (active === "mc") runMC();
+    if (active === "vol") drawVol();
+    if (active === "hedge") runHedge();
   }, 150);
+});
+
+// each topic-intro shows its page's one anchor formula
+document.getElementById("vol_topic_formula").innerHTML = formulaBlock({
+  main: ["\\text{mid} = \\dfrac{\\text{bid}+\\text{ask}}{2}", "\\text{moneyness} = \\dfrac{K}{S}"],
+  where: ["\\text{rel\\_spread} = \\dfrac{\\text{ask}-\\text{bid}}{\\text{mid}}"],
+  legend: [
+    { sym: "bid, ask", meaning: "the two sides of the market for this quote" },
+    { sym: "K", meaning: "strike price" }, { sym: "S", meaning: "spot — current stock price" },
+  ],
+});
+document.getElementById("hedge_topic_formula").innerHTML = formulaBlock({
+  main: ["\\Delta(\\Pi - V) \\approx \\tfrac{1}{2}\\Gamma S^2\\left(\\sigma_{\\text{hedge}}^2\\,dt - r_{\\text{realized}}^2\\right)"],
+  legend: [
+    { sym: "Π", meaning: "the hedge portfolio's value (cash + stock)" },
+    { sym: "V", meaning: "the option's Black-Scholes value" },
+    { sym: "Γ", meaning: "gamma, at the hedging vol" },
+    { sym: "r<sub>realized</sub>", meaning: "the stock's actual log-return over that step" },
+  ],
 });
 
 // initial render
 drawBS();
 solveIV();
 runMC();
+drawVol();
+runHedge();
 </script>
 </body>
 </html>

@@ -20,12 +20,16 @@ full reference for every variable name used in the code.
 
 **Interactive dashboard:** [dashboard.html](dashboard.html) is a single
 self-contained HTML file — no build step, no server, just open it in a
-browser — with live sliders over the same math as `black_scholes.py`,
-`implied_vol.py`, and `monte_carlo.py` (all reimplemented in vanilla JS so
-there's nothing to install). Three tabs: price/Greeks vs. spot with a
-tangent-line view of delta, the implied vol solver with its Newton/bisection
-trace, and Monte Carlo convergence with sample paths and a terminal-price
-histogram.
+browser — with live sliders over the same math as every project below
+(all reimplemented in vanilla JS so there's nothing to install), all five
+covered end to end: price/Greeks vs. spot with a tangent-line view of delta;
+the implied vol solver with its Newton/bisection trace; Monte Carlo
+convergence with sample paths and a terminal-price histogram; a real AAPL
+vol smile with adjustable data-hygiene filters; and a delta-hedging
+simulator with P&L distributions across realized vols and rebalancing
+frequencies. Plus a searchable, formula-backed glossary. Project 4's tab
+uses a real snapshot rather than live data, since a static page can't call
+yfinance — see that tab's intro for why.
 
 ---
 
@@ -41,8 +45,7 @@ pricing libraries — the normal CDF is built from `math.erf`).
 
 For an interactive version — live sliders, a tangent-line view of delta,
 all six Greeks updating in real time — see [dashboard.html](dashboard.html)
-at the repo root, which covers this project plus Projects 2 and 3 in one
-page.
+at the repo root, which covers all five projects in one page.
 
 **Run it:**
 ```bash
