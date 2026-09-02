@@ -2082,7 +2082,8 @@ const GLOSSARY = [
     note: "Add up every future cash flow, each divided by (1+r) raised to how far away it is, and the total is the present value — the fair price to pay today for that whole stream. Every valuation formula in this glossary is really just a shortcut for this sum in some special case.<br><br>Say $1,000 is coming in 3 years, discounted at 8%: PV = 1000/(1.08)³ ≈ $793.83 — one cash flow, one term. Now suppose a second payment, $500 in 1 year, gets added to the deal: PV = 500/(1.08)¹ + 1000/(1.08)³ ≈ $462.96 + $793.83 = $1,256.79 — just another term in the same sum, discounted by its own number of years.<br><br>An option is the simplest case of all: exactly one future cash flow, the payoff at expiry, so its present value is a single term — that's exactly risk-neutral pricing's V₀ = e^{-rT}𝔼^ℚ[Payoff(S_T)]. A growing perpetuity is the opposite extreme: infinitely many cash flows stretching forever, which is why Growth rate's PV = C₁/(r−g) needs to sum an infinite series to collapse into one clean line.",
     formula: { main: [
         "PV_t = \\dfrac{C_t}{(1+r)^t}",
-        "PV = \\sum_{t=1}^{n} PV_t \\;=\\; \\sum_{t=1}^{n} \\dfrac{C_t}{(1+r)^t}",
+        "\\text{Value} = \\dfrac{C_1}{1+r} + \\dfrac{C_2}{(1+r)^2} + \\cdots + \\dfrac{C_n}{(1+r)^n}",
+        "\\text{Value} = \\sum_{t=1}^{n} PV_t \\;=\\; \\sum_{t=1}^{n} \\dfrac{C_t}{(1+r)^t}",
       ],
       legend: [
         { sym: "C<sub>t</sub>", meaning: "the cash flow received at time t" },
@@ -2099,7 +2100,8 @@ const GLOSSARY = [
     note: "Used for valuing something that pays out repeatedly and is expected to grow, like a company's dividends — not something an option ever needs, since it pays off exactly once. The classic growing perpetuity formula, PV = C₁/(r−g), hides a detail worth spelling out by hand: the discount rate applies to the very first payment, but the growth rate doesn't.<br><br>Say a stock is about to pay its first dividend of $5 next year, growing 4% a year after that forever, discounted at 9%:<br>• Year 1: $5 discounted one year — 5/(1.09)¹ ≈ $4.59. No growth yet; this $5 is the baseline everything else grows from.<br>• Year 2: $5 grown once, discounted twice — 5×1.04/(1.09)² ≈ $4.38.<br>• Year 3: $5 grown twice, discounted three times — 5×1.04²/(1.09)³ ≈ $4.18.<br><br>Discounting starts immediately, since even the first payment is only one period away. Growth starts one payment later, because that first payment is the base the later ones grow from — it can't grow relative to itself. Add up the whole infinite series and it collapses to the tidy PV = 5/(0.09−0.04) = $100, but that clean formula is quietly doing what those first few terms spell out one at a time.",
     formula: { main: [
         "PV_n = C_1 \\times \\dfrac{(1+g)^{n-1}}{(1+r)^n}",
-        "PV_{\\text{total}} = \\sum_{n=1}^{\\infty} PV_n \\;=\\; \\dfrac{C_1}{r-g}",
+        "\\text{Value} = \\dfrac{C_1}{1+r} + \\dfrac{C_1(1+g)}{(1+r)^2} + \\dfrac{C_1(1+g)^2}{(1+r)^3} + \\cdots",
+        "\\text{Value} = \\sum_{n=1}^{\\infty} PV_n \\;=\\; \\dfrac{C_1}{r-g}",
       ],
       legend: [
         { sym: "C<sub>1</sub>", meaning: "the year-1 cash flow — the base payment, with zero growth applied to itself" },
