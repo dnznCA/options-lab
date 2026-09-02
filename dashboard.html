@@ -182,6 +182,25 @@
   .stat-card[data-tip]:nth-last-child(-n+2):hover::after,
   .stat-card[data-tip]:last-child:hover::after { transform: translateY(0); }
 
+  /* inline glossary tooltips — jargon words inside topic-intro prose */
+  .term-tip {
+    text-decoration: underline dotted; text-underline-offset: 2px;
+    cursor: help; position: relative;
+  }
+  .term-tip::after {
+    content: attr(data-tip);
+    position: absolute; left: 50%; top: 100%; margin-top: 7px;
+    transform: translateX(-50%) translateY(-4px);
+    width: max-content; max-width: 260px;
+    background: var(--text); color: var(--bg);
+    font-size: 12px; font-weight: 400; line-height: 1.5; text-transform: none;
+    padding: 8px 10px; border-radius: 7px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.28);
+    opacity: 0; pointer-events: none; z-index: 40;
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  .term-tip:hover::after, .term-tip:focus-within::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   .chart-card { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
   .chart-card h4 { margin: 0 0 8px; font-size: 13px; }
   .chart-card canvas { width: 100%; height: 260px; display: block; }
@@ -293,14 +312,18 @@
   <section id="tab-bs" class="tab-panel active">
     <div class="topic-intro">
       <h2>Black-Scholes: price and the Greeks</h2>
-      <p>Black-Scholes computes a European option's price from five inputs: spot, strike, time to expiry,
-        interest rate, and volatility. One equation, no simulation. The Greeks are the partial derivatives
-        of that price — <strong>delta</strong> per $1 of spot, <strong>vega</strong> per point of volatility,
-        <strong>theta</strong> per day of time passing.</p>
+      <p>Black-Scholes computes a <span class="term-tip" tabindex="0" data-term="American / European option">European</span> option's
+        price from five inputs: spot, strike, time to expiry, interest rate, and
+        <span class="term-tip" tabindex="0" data-term="Volatility">volatility</span>. One equation, no simulation. The Greeks are the
+        partial derivatives of that price — <strong><span class="term-tip" tabindex="0" data-term="Delta">delta</span></strong> per $1
+        of spot, <strong><span class="term-tip" tabindex="0" data-term="Vega">vega</span></strong> per point of volatility,
+        <strong><span class="term-tip" tabindex="0" data-term="Theta">theta</span></strong> per day of time passing.</p>
       <p>Traders watch the Greeks more than the price itself, because Greeks describe risk directly: delta is
-        the hedge ratio, gamma is how fast that hedge goes stale, vega is exposure to a shift in volatility
-        with no stock movement at all. Implied vol (next tab) inverts this formula; Monte Carlo (after that)
-        prices the same thing by simulation.</p>
+        the <span class="term-tip" tabindex="0" data-term="Hedge / hedge ratio">hedge ratio</span>,
+        <span class="term-tip" tabindex="0" data-term="Gamma">gamma</span> is how fast that hedge goes stale, vega is exposure to a
+        shift in volatility with no stock movement at all. <span class="term-tip" tabindex="0" data-term="Implied volatility">Implied
+        vol</span> (next tab) inverts this formula; <span class="term-tip" tabindex="0" data-term="Monte Carlo simulation">Monte
+        Carlo</span> (after that) prices the same thing by simulation.</p>
       <div class="topic-formula" id="bs_topic_formula"></div>
     </div>
     <div class="layout">
@@ -384,11 +407,15 @@
   <section id="tab-iv" class="tab-panel">
     <div class="topic-intro">
       <h2>Implied volatility</h2>
-      <p>Every Black-Scholes input except volatility is directly observable. Implied volatility solves the
-        formula backwards: given a market price, find the σ that produces it.</p>
-      <p>This is what options actually trade on — not price, but the market's own volatility forecast. The
-        solver uses <strong>Newton-Raphson</strong>, with vega (from the previous tab) as its slope, and falls
-        back to <strong>bisection</strong> when vega is too flat to trust: deep ITM/OTM, very short-dated.</p>
+      <p>Every <span class="term-tip" tabindex="0" data-term="Black-Scholes model">Black-Scholes</span> input except
+        <span class="term-tip" tabindex="0" data-term="Volatility">volatility</span> is directly observable.
+        <span class="term-tip" tabindex="0" data-term="Implied volatility">Implied volatility</span> solves the formula backwards:
+        given a market price, find the σ that produces it.</p>
+      <p>This is what options actually trade on — not price, but the market's own volatility forecast. The solver uses
+        <strong><span class="term-tip" tabindex="0" data-term="Newton-Raphson">Newton-Raphson</span></strong>, with
+        <span class="term-tip" tabindex="0" data-term="Vega">vega</span> (from the previous tab) as its slope, and falls back to
+        <strong><span class="term-tip" tabindex="0" data-term="Bisection method">bisection</span></strong> when vega is too flat to
+        trust: deep <span class="term-tip" tabindex="0" data-term="ITM / ATM / OTM">ITM/OTM</span>, very short-dated.</p>
       <div class="topic-formula" id="iv_topic_formula"></div>
     </div>
     <div class="layout">
@@ -481,12 +508,14 @@
   <section id="tab-mc" class="tab-panel">
     <div class="topic-intro">
       <h2>Monte Carlo pricing</h2>
-      <p>Black-Scholes has a closed-form solution because its payoff — max(S<sub>T</sub> − K, 0) — is simple
-        enough to integrate directly. Most payoffs aren't. Monte Carlo prices anything: simulate the random
-        process thousands of times and average the result.</p>
-      <p>Two uses here. It's a check — this price should converge to the same number Black-Scholes computes,
-        with a shrinking confidence interval to prove it. And it's the technique Project 5's delta-hedging
-        simulation depends on, since there's no formula to fall back on there.</p>
+      <p><span class="term-tip" tabindex="0" data-term="Black-Scholes model">Black-Scholes</span> has a closed-form solution because
+        its <span class="term-tip" tabindex="0" data-term="Payoff">payoff</span> — max(S<sub>T</sub> − K, 0) — is simple enough to
+        integrate directly. Most payoffs aren't. <span class="term-tip" tabindex="0" data-term="Monte Carlo simulation">Monte
+        Carlo</span> prices anything: simulate the random process thousands of times and average the result.</p>
+      <p>Two uses here. It's a check — this price should converge to the same number Black-Scholes computes, with a shrinking
+        <span class="term-tip" tabindex="0" data-term="Confidence interval">confidence interval</span> to prove it. And it's the
+        technique Project 5's <span class="term-tip" tabindex="0" data-term="Delta-hedging">delta-hedging</span> simulation depends
+        on, since there's no formula to fall back on there.</p>
       <div class="topic-formula" id="mc_topic_formula"></div>
     </div>
     <div class="layout">
@@ -588,14 +617,17 @@
   <section id="tab-vol" class="tab-panel">
     <div class="topic-intro">
       <h2>Volatility smile / surface</h2>
-      <p>Every other tab runs on hand-picked numbers. This one runs Implied Volatility's solver across a real
-        option chain: a snapshot of every AAPL quote <code>vol_surface.py</code> pulled from Yahoo Finance,
-        embedded here since a static page can't call a live API. If Black-Scholes's constant-σ assumption
-        were exactly right, every strike would imply the same volatility — it doesn't.</p>
-      <p>The sliders control the data-hygiene filters real quotes need before you can trust them: a spread
-        cap, a moneyness band, a minimum volume. Loosen them and noisy, illiquid quotes creep into the smile;
-        tighten them and the chart gets cleaner but sparser. That tradeoff — not new math — is what Project 4
-        is actually about.</p>
+      <p>Every other tab runs on hand-picked numbers. This one runs
+        <span class="term-tip" tabindex="0" data-term="Implied volatility">Implied Volatility</span>'s solver across a real option
+        chain: a snapshot of every AAPL quote <code>vol_surface.py</code> pulled from Yahoo Finance, embedded here since a static
+        page can't call a live API. If <span class="term-tip" tabindex="0" data-term="Black-Scholes model">Black-Scholes</span>'s
+        constant-σ assumption were exactly right, every strike would imply the same
+        <span class="term-tip" tabindex="0" data-term="Volatility">volatility</span> — it doesn't.</p>
+      <p>The sliders control the data-hygiene filters real quotes need before you can trust them: a
+        <span class="term-tip" tabindex="0" data-term="Bid/ask spread">spread</span> cap, a
+        <span class="term-tip" tabindex="0" data-term="Moneyness">moneyness</span> band, a minimum volume. Loosen them and noisy,
+        <span class="term-tip" tabindex="0" data-term="Liquidity">illiquid</span> quotes creep into the smile; tighten them and the
+        chart gets cleaner but sparser. That tradeoff — not new math — is what Project 4 is actually about.</p>
       <div class="topic-formula" id="vol_topic_formula"></div>
     </div>
     <div class="layout">
@@ -642,15 +674,16 @@
   <section id="tab-hedge" class="tab-panel">
     <div class="topic-intro">
       <h2>Delta-hedging P&amp;L</h2>
-      <p>Sell an option at a volatility you believe in (<strong>σ<sub>hedge</sub></strong>), then hedge it by
-        holding <code>delta()</code> shares of stock, rebalanced at every step, along a path that actually
-        realizes a <em>different</em> volatility (<strong>σ<sub>realized</sub></strong>). If hedging were
-        continuous and the two matched, the hedge would replicate the payoff exactly and P&amp;L would be
+      <p>Sell an option at a volatility you believe in (<strong>σ<sub>hedge</sub></strong>), then
+        <span class="term-tip" tabindex="0" data-term="Hedge / hedge ratio">hedge</span> it by holding
+        <code>delta()</code> shares of stock, rebalanced at every step, along a path that actually realizes a
+        <em>different</em> volatility (<strong>σ<sub>realized</sub></strong>). If hedging were continuous and the two matched, the
+        hedge would replicate the <span class="term-tip" tabindex="0" data-term="Payoff">payoff</span> exactly and P&amp;L would be
         zero. This page lets you watch what happens when they don't.</p>
-      <p>Set the two vols equal and rebalance often — P&amp;L clusters near zero. Let realized vol run below
-        the hedging vol and the seller profits on average; above it, they lose. Rebalancing more often
-        narrows the spread of outcomes; it does not move that average at all — the bias comes entirely from
-        the vol gap, not from how often you hedge.</p>
+      <p>Set the two vols equal and rebalance often — P&amp;L clusters near zero. Let
+        <span class="term-tip" tabindex="0" data-term="Realized volatility">realized vol</span> run below the hedging vol and the
+        seller profits on average; above it, they lose. Rebalancing more often narrows the spread of outcomes; it does not move
+        that average at all — the bias comes entirely from the vol gap, not from how often you hedge.</p>
       <div class="topic-formula" id="hedge_topic_formula"></div>
     </div>
     <div class="layout">
@@ -1843,6 +1876,10 @@ const GLOSSARY = [
     note: "The sticker price you actually pay upfront to own the option. This is the number every pricing formula in this dashboard is solving for. Once paid, it's gone — the maximum you can lose on the trade, however badly it goes." },
   { term: "ITM / ATM / OTM", def: "In/at/out-of-the-money — whether the strike is favorable, right at, or unfavorable relative to the current spot.",
     note: "A snapshot of whether the option would be worth exercising right this second. ITM (in-the-money) means yes, it'd pay off now. OTM (out-of-the-money) means it'd be worthless if exercised today. ATM (at-the-money) is the borderline, where spot and strike are about equal." },
+  { term: "Moneyness", sym: "K/S", def: "The ratio of strike to spot, K/S — a way to compare options across different stocks and price levels on one common scale instead of raw dollar strikes.",
+    note: "A $150 strike means something very different on a $50 stock than on a $500 stock. Moneyness fixes that by expressing the strike as a ratio to spot instead of a dollar amount — 1.0 is exactly at-the-money. The Vol Surface tab plots its smile against this instead of raw strike for exactly this reason: it lines up options on different underlyings on the same axis." },
+  { term: "Payoff", def: "What an option is actually worth at expiry, as a function of the final stock price: max(S_T−K, 0) for a call, max(K−S_T, 0) for a put.",
+    note: "The payoff is the one certain thing about an option — pure arithmetic, once you know the final stock price. Everything else in this repo — pricing, the Greeks, hedging — is really about figuring out what that still-uncertain future payoff is worth today." },
   { term: "Intrinsic value", def: "What an option would be worth if exercised right now: max(S−K, 0) for a call, max(K−S, 0) for a put. The floor an option's price can't fall below.",
     note: "The \"cash it in today\" value. If the stock is at $110 and your call's strike is $100, exercising right now nets you $10 — that's the intrinsic value. It can never go negative; you'd just choose not to exercise instead.",
     formula: { main: ["\\text{Call: } \\max(S-K,\\ 0)", "\\text{Put: } \\max(K-S,\\ 0)"],
@@ -2098,6 +2135,15 @@ function getFormula(term) {
 document.getElementById("bs_topic_formula").innerHTML = formulaBlock(getFormula("Black-Scholes model"));
 document.getElementById("iv_topic_formula").innerHTML = formulaBlock(getFormula("Implied volatility"));
 document.getElementById("mc_topic_formula").innerHTML = formulaBlock(getFormula("Monte Carlo simulation"));
+
+// jargon words in the topic-intro prose get a hover tooltip, pulled from the
+// same GLOSSARY entry the Glossary tab shows — <span class="term-tip"
+// data-term="Delta"> only names which entry to use, so the tooltip text
+// can't drift out of sync with the glossary card it's quoting.
+document.querySelectorAll(".term-tip[data-term]").forEach(el => {
+  const g = GLOSSARY.find(x => x.term === el.dataset.term);
+  if (g) el.setAttribute("data-tip", g.def);
+});
 
 /* ---------------- tabs ---------------- */
 
